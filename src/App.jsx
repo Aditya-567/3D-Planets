@@ -1,13 +1,11 @@
 import { BrowserRouter } from "react-router-dom";
-import EarthandMoon from "./components/EarthandMoon";
-import EarthMoonSatalite from "./components/EarthMoonSatalite";
+import EarthwithTower from "./components/earthwithTower";
 
 
 const App = () => {
   return (
     <BrowserRouter>
-      <EarthandMoon />
-      <EarthMoonSatalite />
+      <EarthwithTower />
     </BrowserRouter>
   );
 }
