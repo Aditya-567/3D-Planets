@@ -1,11 +1,11 @@
 import { BrowserRouter } from "react-router-dom";
-import Dashboard from "./components/Dashboard";
+import EarthandMoon from "./components/EarthandMoon";
 
 
 const App = () => {
   return (
     <BrowserRouter>
-      <Dashboard />
+      <EarthandMoon />
     </BrowserRouter>
   );
 }
