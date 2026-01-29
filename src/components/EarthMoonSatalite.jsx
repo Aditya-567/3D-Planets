@@ -4,7 +4,7 @@ import { Globe, MapPin, Navigation, Maximize, RotateCw, Moon, Zap, Layers, Chevr
 const GlobeApp = () => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
-    const [rotationSpeed, setRotationSpeed] = useState(0.001);
+    const [rotationSpeed, setRotationSpeed] = useState(0.0005);
     const [isDragging, setIsDragging] = useState(false);
     const [coordinates, setCoordinates] = useState({ lat: 0, long: 0 });
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -64,10 +64,10 @@ const GlobeApp = () => {
         const textureLoader = new THREE.TextureLoader();
 
         // --- Starfield ---
-        const starCount = 2000;
+        const starCount = 8000;
         const starGeometry = new THREE.BufferGeometry();
         const starMaterial = new THREE.PointsMaterial({
-            size: 0.03,
+            size: 0.09,
             vertexColors: true,
             transparent: true,
             opacity: 0.6
@@ -78,13 +78,30 @@ const GlobeApp = () => {
         const starBlinkParams = [];
 
         for (let i = 0; i < starCount; i++) {
-            const x = (Math.random() - 0.5) * 30;
-            const y = (Math.random() - 0.5) * 30;
-            const z = - (Math.random()) * 20;
+            // Use spherical coordinates to distribute stars evenly around the scene
+            // This ensures infinite rotation without gaps
+            const r = 15 + Math.random() * 30; // Radius between 15 and 45 units away
+            const theta = 2 * Math.PI * Math.random(); // Azimuth
+            const phi = Math.acos(2 * Math.random() - 1); // Elevation
+
+            const x = r * Math.sin(phi) * Math.cos(theta);
+            const y = r * Math.sin(phi) * Math.sin(theta);
+            const z = r * Math.cos(phi);
+
             starVertices.push(x, y, z);
-            starColors.push(1, 1, 1);
+
+            // Random star colors (mostly white/blueish)
+            const colorType = Math.random();
+            if (colorType > 0.9) {
+                starColors.push(0.8, 0.8, 1); // Blueish tint
+            } else if (colorType > 0.7) {
+                starColors.push(1, 0.9, 0.8); // Yellowish tint
+            } else {
+                starColors.push(1, 1, 1); // White
+            }
+
             starBlinkParams.push({
-                speed: 0.2 + Math.random() * 2.0,
+                speed: 0.5 + Math.random() * 2.5,
                 phase: Math.random() * Math.PI * 2
             });
         }
@@ -435,11 +452,15 @@ const GlobeApp = () => {
         let animationId;
         const animate = () => {
             animationId = requestAnimationFrame(animate);
-            if (!isMouseDown) targetRotationY += 0.001;
+            if (!isMouseDown) targetRotationY += 0.01;
 
             earthGroup.rotation.y += (targetRotationY - earthGroup.rotation.y) * 0.05;
             earthGroup.rotation.x += (targetRotationX - earthGroup.rotation.x) * 0.05;
-            clouds.rotation.y += 0.0004;
+            clouds.rotation.y += 0.004;
+
+            // Starfield slow rotation
+            stars.rotation.y -= 0.002;
+
 
             // Animate Satellites
             satellites.forEach(sat => {
