@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const GlobeApp = () => {
+const EarthandStelite = () => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
 
@@ -544,4 +544,4 @@ const GlobeApp = () => {
     );
 };
 
-export default GlobeApp;
+export default EarthandStelite;
