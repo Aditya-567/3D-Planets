@@ -1,6 +1,6 @@
 {
   "name": "3d-solar-system-globe",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "type": "module",
   "files": [
     "dist"
@@ -33,5 +33,16 @@
     "tailwindcss": "^3.4.19",
     "postcss": "^8.5.6",
     "autoprefixer": "^10.4.23"
-  }
+  },
+  "keywords": [
+    "react",
+    "threejs",
+    "3d",
+    "globe",
+    "solar-system",
+    "planets",
+    "react-three",
+    "webgl",
+    "3d-visualization"
+  ]
 }
