@@ -589,7 +589,7 @@ const GlobeScene = () => {
     return <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />;
 };
 
-const Globe = () => {
+const DotGlobeWithDataLink = () => {
     return (
         <div className="w-full h-screen bg-black relative overflow-hidden">
             <GlobeScene />
@@ -597,4 +597,4 @@ const Globe = () => {
     );
 };
 
-export default Globe;
+export default DotGlobeWithDataLink;

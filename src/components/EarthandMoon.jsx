@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Globe, MapPin, Navigation, Maximize, RotateCw, Moon, Zap, Layers, ChevronRight, Activity } from 'lucide-react';
 
-const EarthandMoon = () => {
+const EarthAndMoon = () => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
     const [rotationSpeed, setRotationSpeed] = useState(0.001);
@@ -349,4 +349,4 @@ const EarthandMoon = () => {
     );
 };
 
-export default EarthandMoon;
+export default EarthAndMoon;

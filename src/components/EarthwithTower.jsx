@@ -1,7 +1,7 @@
 import { Activity, Clock, Globe, Layers, Navigation } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-const EarthwithTower = () => {
+const EarthWithTower = () => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
 
@@ -580,4 +580,4 @@ const EarthwithTower = () => {
 
 
 
-export default EarthwithTower;
+export default EarthWithTower;

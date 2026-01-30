@@ -1,21 +1,23 @@
 import { BrowserRouter } from "react-router-dom";
-import EarthwithTower from "./components/earthwithTower";
-import DotGlode from "./components/dotGlode";
-import DotGlobewithDataLink from "./components/DotGlobewithDataLink"
-import EarthandStelite from "./components/EarthandStelite";
-import EarthandMoon from "./components/EarthandMoon";
-import EarthMoonSatalite from "./components/EarthMoonSatalite";
+import EarthWithTower from "./components/EarthWithTower";
+import DotGlobe from "./components/DotGlobe";
+import DotGlobeWithDataLink from "./components/DotGlobeWithDataLink"
+import EarthAndSatellite from "./components/EarthAndSatellite";
+import EarthAndMoon from "./components/EarthAndMoon";
+import EarthMoonSatellite from "./components/EarthMoonSatellite";
+import SolarSystem from "./components/SolarSystem";
 
 
 const App = () => {
   return (
     <BrowserRouter>
-      <DotGlode />
-      <DotGlobewithDataLink />
-      <EarthandStelite/>
-      <EarthwithTower />
-      <EarthandMoon />
-      <EarthMoonSatalite />
+      <DotGlobe />
+      <DotGlobeWithDataLink />
+      <EarthAndSatellite />
+      <EarthWithTower />
+      <EarthAndMoon />
+      <EarthMoonSatellite />
+      <SolarSystem />
     </BrowserRouter>
   );
 }
