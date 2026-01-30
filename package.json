@@ -1,6 +1,6 @@
 {
   "name": "3d-solar-system-globe",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "type": "module",
   "files": [
     "dist"
@@ -22,7 +22,7 @@
   "peerDependencies": {
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "three": "^0.160.0" 
+    "three": "^0.160.0"
   },
   "devDependencies": {
     "react": "^18.0.0",
