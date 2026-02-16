@@ -46,7 +46,7 @@ npm install 3d-solar-system-globe
 ## 🚀 Usage
 
 Import any component you need from the package and render it inside your React app.
-```bash
+```jsx
 import {
   DotGlobe,
   DotGlobeWithDataLink,
@@ -59,14 +59,124 @@ import {
 
 function App() {
   return (
-    
+    <div>
       <SolarSystem />
-   
+    </div>
   );
 }
 
 export default App;
 ```
+
+### Basic Example
+```jsx
+<EarthAndMoon 
+  earthSize={0.8}
+  moonSize={0.12}
+  starCount={10000}
+/>
+```
+
+### Advanced Customization
+```jsx
+<Saturn 
+  saturnSize={0.9}
+  ringInnerRadius={1.2}
+  ringWidth={0.9}
+  ringParticleCount={500000}
+  saturnRotationSpeed={0.002}
+  tilt={30}
+/>
+```
+
+---
+
+## 📚 Available Components
+
+### 🌍 Earth-Based Components
+- **DotGlobe** - Interactive dotted globe with satellites
+- **DotGlobeWithDataLink** - Globe with data link visualization
+- **EarthWithTower** - Earth with communication towers and signals
+- **EarthAndSatellite** - Earth with orbiting satellites
+- **EarthAndMoon** - Earth-Moon system
+- **EarthMoonSatellite** - Complete Earth system with Moon and satellites
+
+### 🪐 Planet Components
+- **Mercury** - Smallest planet, closest to the Sun
+- **Venus** - Hottest planet with thick atmosphere
+- **Mars** - Red planet with Phobos and Deimos moons
+- **Jupiter** - Gas giant with faint rings
+- **Saturn** - Gas giant with prominent ring system
+- **Uranus** - Ice giant with thin rings
+- **Neptune** - Ice giant with very faint rings
+- **Pluto** - Dwarf planet
+
+### 🌌 System Components
+- **SolarSystem** - Complete solar system with all planets
+- **SolarSystemWithFeatures** - Enhanced solar system with UI controls
+- **Galaxy** - Spiral galaxy visualization
+
+### 🎨 UI Components
+- **LogoWithRotatingText** - Animated logo with rotating text
+
+---
+
+## ⚙️ Component Attributes
+
+Each component is highly customizable. For a complete list of all available attributes for each component, see **[COMPONENT_ATTRIBUTES.md](COMPONENT_ATTRIBUTES.md)**.
+
+### Quick Reference
+
+#### DotGlobe
+```jsx
+<DotGlobe 
+  cameraZ={7.5}
+  maxParticles={20000}
+  dotColor={0x4ade80}
+  orbitCount={3}
+  orbitSpeed={0.015}
+  satelliteColor={0x4ade80}
+  autoRotateSpeed={0.002}
+/>
+```
+
+#### EarthAndMoon
+```jsx
+<EarthAndMoon 
+  earthSize={0.6}
+  moonSize={0.09}
+  moonDistance={1.0}
+  moonOrbitSpeed={0.02}
+  starCount={8000}
+  autoRotate={true}
+/>
+```
+
+#### Saturn
+```jsx
+<Saturn 
+  saturnSize={0.7}
+  ringInnerRadius={1.05}
+  ringWidth={0.75}
+  ringParticleCount={300000}
+  tilt={26.7}
+  autoRotate={true}
+/>
+```
+
+#### Galaxy
+```jsx
+<Galaxy 
+  stars={100000}
+  radius={5.4}
+  arms={4}
+  spinCurvature={1.8}
+  innerColor="#ffaa60"
+  outerColor="#1b3984"
+  rotationSpeed={0.05}
+/>
+```
+
 ---
 <img width="1788" height="875" alt="image" src="https://github.com/user-attachments/assets/518aa731-3dd4-4c05-9106-1440645da0bd" />
 <img width="679" height="650" alt="image" src="https://github.com/user-attachments/assets/4bd74775-00e3-4941-b413-908efc310192" />

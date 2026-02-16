@@ -16,7 +16,7 @@ const loadThree = () => {
     });
 };
 
-const EarthAndMoon = ({
+const Neptune = ({
     // Positioning
     top,
     bottom,
@@ -26,19 +26,20 @@ const EarthAndMoon = ({
     style = {},
 
     // Customization
-    earthSize = 0.6,
-    moonSize = 0.09,
-    moonDistance = 1.0,
-    moonOrbitSpeed = 0.02,
-    earthRotationSpeed = 0.001,
-    cloudOpacity = 0.4,
+    neptuneSize = 0.65,
+    neptuneRotationSpeed = 0.0013,
+    // Neptune's rings are very faint and thin
+    ringInnerRadius = 1.2,
+    ringOuterRadius = 1.35,
+    ringParticleCount = 25000,
+    ringRotationSpeed = 0.005,
     atmosphereOpacity = 0.15,
     starCount = 8000,
     autoRotate = true
 }) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
-    const [rotationSpeed, setRotationSpeed] = useState(earthRotationSpeed);
+    const [rotationSpeed, setRotationSpeed] = useState(neptuneRotationSpeed);
     const [isDragging, setIsDragging] = useState(false);
     const [coordinates, setCoordinates] = useState({ lat: 0, long: 0 });
 
@@ -73,6 +74,7 @@ const EarthAndMoon = ({
         scene.fog = new THREE.FogExp2(0x000000, 0.0003); // Reduced fog for clearer stars
 
         // Camera
+        // Increased far clipping plane to 8000 to see the background sphere
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 8000);
         camera.position.z = 2.8;
 
@@ -103,7 +105,7 @@ const EarthAndMoon = ({
         const backgroundSphere = new THREE.Mesh(bgGeometry, bgMaterial);
         scene.add(backgroundSphere);
 
-        // --- 2. GALAXY SPHERE (Nebula particles - Earth tones: Blue/Green/White) ---
+        // --- 2. GALAXY SPHERE (Nebula particles - Deep Blues for Neptune) ---
         const galaxyCount = 20000;
         const galaxyGeometry = new THREE.BufferGeometry();
         const galaxyMaterial = new THREE.PointsMaterial({
@@ -132,10 +134,10 @@ const EarthAndMoon = ({
             const col = new THREE.Color();
             const rand = Math.random();
 
-            // Earth Theme: Blues, Greens, and White
-            if (rand > 0.6) col.setHex(0x1e90ff); // Dodger Blue
-            else if (rand > 0.3) col.setHex(0x3cb371); // Medium Sea Green
-            else col.setHex(0xf0f8ff); // Alice Blue
+            // Neptune Theme: Royal Blues, Dark Cyans, and Deep Purples
+            if (rand > 0.6) col.setHex(0x4169e1); // Royal Blue
+            else if (rand > 0.3) col.setHex(0x00ced1); // Dark Turquoise
+            else col.setHex(0x483d8b); // Dark Slate Blue
 
             const intensity = 0.3 + Math.random() * 0.7;
             col.multiplyScalar(intensity);
@@ -192,29 +194,70 @@ const EarthAndMoon = ({
         const stars = new THREE.Points(starGeometry, starMaterial);
         scene.add(stars);
 
-        // --- Earth Group ---
-        const earthGroup = new THREE.Group();
-        earthGroup.rotation.z = 23.4 * Math.PI / 180;
-        scene.add(earthGroup);
+        // --- Neptune Group ---
+        const neptuneGroup = new THREE.Group();
+        neptuneGroup.rotation.z = 28.3 * Math.PI / 180;
+        scene.add(neptuneGroup);
 
-        // Earth Surface
-        const earthGeometry = new THREE.SphereGeometry(earthSize, 64, 64);
-        const earthMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg'),
-            specularMap: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg'),
-            normalMap: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_normal_2048.jpg'),
-            specular: new THREE.Color(0x333333),
-            shininess: 15
+        // Neptune Surface
+        const neptuneGeometry = new THREE.SphereGeometry(neptuneSize, 64, 64);
+        const neptuneMaterial = new THREE.MeshPhongMaterial({
+            map: textureLoader.load('neptune.jpg'),
+            shininess: 10
         });
-        const earth = new THREE.Mesh(earthGeometry, earthMaterial);
-        earth.castShadow = true;
-        earth.receiveShadow = true;
-        earthGroup.add(earth);
+        const neptune = new THREE.Mesh(neptuneGeometry, neptuneMaterial);
+        neptune.castShadow = true;
+        neptune.receiveShadow = true;
+        neptuneGroup.add(neptune);
+
+        // --- 4. Neptune's Faint Rings ---
+        const ringGeometry = new THREE.BufferGeometry();
+        const ringPositions = [];
+        const ringColors = [];
+        const ringSizes = [];
+
+        for (let i = 0; i < ringParticleCount; i++) {
+            const radius = ringInnerRadius + Math.random() * (ringOuterRadius - ringInnerRadius);
+            const angle = Math.random() * Math.PI * 2;
+
+            // Generate flat on XZ plane relative to the group
+            const x = Math.cos(angle) * radius;
+            const z = Math.sin(angle) * radius;
+            const y = (Math.random() - 0.5) * 0.01; // Very thin
+
+            ringPositions.push(x, y, z);
+
+            const color = new THREE.Color();
+            // Neptune's rings are very dark and dusty
+            const shade = 0.1 + Math.random() * 0.2;
+            color.setRGB(shade, shade, shade + 0.05); // Dark grey with hint of blue
+
+            ringColors.push(color.r, color.g, color.b);
+            ringSizes.push(0.002 + Math.random() * 0.003);
+        }
+
+        ringGeometry.setAttribute('position', new THREE.Float32BufferAttribute(ringPositions, 3));
+        ringGeometry.setAttribute('color', new THREE.Float32BufferAttribute(ringColors, 3));
+        ringGeometry.setAttribute('size', new THREE.Float32BufferAttribute(ringSizes, 1));
+
+        const ringMaterial = new THREE.PointsMaterial({
+            size: 0.003,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.6, // Faint
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            sizeAttenuation: true
+        });
+
+        const neptuneRing = new THREE.Points(ringGeometry, ringMaterial);
+        // Neptune rings are equatorial, so they align with the planet's rotation
+        neptuneGroup.add(neptuneRing);
 
         // Atmosphere Glow
-        const atmosphereGeometry = new THREE.SphereGeometry(earthSize + 0.02, 64, 64);
+        const atmosphereGeometry = new THREE.SphereGeometry(neptuneSize + 0.02, 64, 64);
         const atmosphereMaterial = new THREE.MeshPhongMaterial({
-            color: 0x06b6d4,
+            color: 0x4169e1,
             transparent: true,
             opacity: atmosphereOpacity,
             side: THREE.BackSide,
@@ -222,35 +265,6 @@ const EarthAndMoon = ({
         });
         const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
         scene.add(atmosphere);
-
-        // Clouds
-        const cloudGeometry = new THREE.SphereGeometry(earthSize + 0.005, 64, 64);
-        const cloudMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_1024.png'),
-            transparent: true,
-            opacity: cloudOpacity,
-            blending: THREE.AdditiveBlending,
-            side: THREE.DoubleSide
-        });
-        const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
-        earthGroup.add(clouds);
-
-        // --- Moon Setup ---
-        const moonOrbitGroup = new THREE.Group();
-        moonOrbitGroup.rotation.z = 15 * Math.PI / 180;
-        scene.add(moonOrbitGroup);
-
-        const moonGeometry = new THREE.SphereGeometry(moonSize, 32, 32);
-        const moonMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg'),
-            shininess: 5,
-        });
-        const moon = new THREE.Mesh(moonGeometry, moonMaterial);
-        moon.position.set(moonDistance, 0, 0);
-        moon.castShadow = true;
-        moon.receiveShadow = true;
-        moonOrbitGroup.add(moon);
-
 
         // --- Lighting ---
         const ambientLight = new THREE.AmbientLight(0x111111);
@@ -263,7 +277,7 @@ const EarthAndMoon = ({
         sunLight.shadow.mapSize.height = 1024;
         scene.add(sunLight);
 
-        const rimLight = new THREE.DirectionalLight(0x06b6d4, 0.8);
+        const rimLight = new THREE.DirectionalLight(0x5b7db1, 0.8);
         rimLight.position.set(-5, 1, -5);
         scene.add(rimLight);
 
@@ -312,7 +326,7 @@ const EarthAndMoon = ({
         const onDocumentMouseUp = () => {
             isMouseDown = false;
             setIsDragging(false);
-            setRotationSpeed(earthRotationSpeed / 2);
+            setRotationSpeed(neptuneRotationSpeed / 2);
         };
 
         const onTouchStart = (event) => {
@@ -348,27 +362,26 @@ const EarthAndMoon = ({
         let animationId;
         const animate = () => {
             animationId = requestAnimationFrame(animate);
-            if (!isMouseDown && autoRotate) targetRotationY += earthRotationSpeed;
+            if (!isMouseDown && autoRotate) targetRotationY += neptuneRotationSpeed;
 
-            earthGroup.rotation.y += (targetRotationY - earthGroup.rotation.y) * 0.05;
-            earthGroup.rotation.x += (targetRotationX - earthGroup.rotation.x) * 0.05;
-            clouds.rotation.y += 0.0004;
+            neptuneGroup.rotation.y += (targetRotationY - neptuneGroup.rotation.y) * 0.05;
+            neptuneGroup.rotation.x += (targetRotationX - neptuneGroup.rotation.x) * 0.05;
+
+            // Rotate Ring
+            neptuneRing.rotation.y -= ringRotationSpeed;
 
             // Rotate Starfields and Background
-            stars.rotation.y -= 0.002;
-            backgroundSphere.rotation.y -= 0.0004;
-
-            moonOrbitGroup.rotation.y += moonOrbitSpeed;
-            moon.rotation.y += 0.01;
+            stars.rotation.y -= 0.0009;
+            backgroundSphere.rotation.y -= 0.0009;
 
             const time = Date.now() * 0.001;
             const colors = starGeometry.attributes.color.array;
             for (let i = 0; i < starCount; i++) {
                 const { speed, phase } = starBlinkParams[i];
                 const brightness = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(time * speed + phase));
-                colors[i * 3] = brightness;     // R
-                colors[i * 3 + 1] = brightness; // G
-                colors[i * 3 + 2] = brightness; // B
+                colors[i * 3] = brightness;
+                colors[i * 3 + 1] = brightness;
+                colors[i * 3 + 2] = brightness;
             }
             starGeometry.attributes.color.needsUpdate = true;
 
@@ -398,10 +411,8 @@ const EarthAndMoon = ({
             if (mountRef.current && renderer.domElement) {
                 mountRef.current.removeChild(renderer.domElement);
             }
-            earthGeometry.dispose();
-            earthMaterial.dispose();
-            moonGeometry.dispose();
-            moonMaterial.dispose();
+            neptuneGeometry.dispose();
+            neptuneMaterial.dispose();
             starGeometry.dispose();
             starMaterial.dispose();
             bgGeometry.dispose();
@@ -428,7 +439,7 @@ const EarthAndMoon = ({
             {/* 3D Canvas Container */}
             <div ref={mountRef} className="absolute inset-0 z-0 cursor-move" />
 
-            {/* Background Ambience - Earthy Blues/Teals */}
+            {/* Background Ambience */}
             <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-900/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-70"></div>
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-900/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-70"></div>
 
@@ -449,10 +460,8 @@ const EarthAndMoon = ({
                 </div>
             )}
 
-            {/* All Overlay UI Elements have been removed as requested */}
-
         </div>
     );
 };
 
-export default EarthAndMoon;
+export default Neptune;

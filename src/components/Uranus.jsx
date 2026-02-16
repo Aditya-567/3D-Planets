@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // Self-contained Three.js loader
 const loadThree = () => {
@@ -16,7 +16,7 @@ const loadThree = () => {
     });
 };
 
-const EarthAndMoon = ({
+const Uranus = ({
     // Positioning
     top,
     bottom,
@@ -26,19 +26,20 @@ const EarthAndMoon = ({
     style = {},
 
     // Customization
-    earthSize = 0.6,
-    moonSize = 0.09,
-    moonDistance = 1.0,
-    moonOrbitSpeed = 0.02,
-    earthRotationSpeed = 0.001,
-    cloudOpacity = 0.4,
-    atmosphereOpacity = 0.15,
+    uranusSize = 0.65,
+    // Rings are thinner and closer than Saturn's
+    ringInnerRadius = 0.85,
+    ringWidth = 0.25,
+    ringParticleCount = 30000, // Uranus rings are faint
+    uranusRotationSpeed = 0.0012,
+    ringRotationSpeed = 0.0008,
+    particleRotationSpeed = 0.008,
     starCount = 8000,
     autoRotate = true
 }) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
-    const [rotationSpeed, setRotationSpeed] = useState(earthRotationSpeed);
+    const [rotationSpeed, setRotationSpeed] = useState(uranusRotationSpeed);
     const [isDragging, setIsDragging] = useState(false);
     const [coordinates, setCoordinates] = useState({ lat: 0, long: 0 });
 
@@ -67,6 +68,9 @@ const EarthAndMoon = ({
     const initThree = () => {
         const THREE = window.THREE;
 
+        // Calculate outer radius
+        const ringOuterRadius = ringInnerRadius + ringWidth;
+
         // Scene Setup
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000); // Pure Black
@@ -74,7 +78,9 @@ const EarthAndMoon = ({
 
         // Camera
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 8000);
-        camera.position.z = 2.8;
+        // Positioned to see the rings at an angle (matching the reference image)
+        camera.position.set(0, 0, 3.2);
+        camera.lookAt(0, 0, 0);
 
         // Renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -103,7 +109,7 @@ const EarthAndMoon = ({
         const backgroundSphere = new THREE.Mesh(bgGeometry, bgMaterial);
         scene.add(backgroundSphere);
 
-        // --- 2. GALAXY SPHERE (Nebula particles - Earth tones: Blue/Green/White) ---
+        // --- 2. GALAXY SPHERE (Nebula particles - Cool Colors for Uranus) ---
         const galaxyCount = 20000;
         const galaxyGeometry = new THREE.BufferGeometry();
         const galaxyMaterial = new THREE.PointsMaterial({
@@ -132,10 +138,10 @@ const EarthAndMoon = ({
             const col = new THREE.Color();
             const rand = Math.random();
 
-            // Earth Theme: Blues, Greens, and White
-            if (rand > 0.6) col.setHex(0x1e90ff); // Dodger Blue
-            else if (rand > 0.3) col.setHex(0x3cb371); // Medium Sea Green
-            else col.setHex(0xf0f8ff); // Alice Blue
+            // Uranus Theme: Cyans, Teals, and Light Blues
+            if (rand > 0.6) col.setHex(0x00ced1); // Dark Turquoise
+            else if (rand > 0.3) col.setHex(0x40e0d0); // Turquoise
+            else col.setHex(0x4169e1); // Royal Blue
 
             const intensity = 0.3 + Math.random() * 0.7;
             col.multiplyScalar(intensity);
@@ -192,65 +198,98 @@ const EarthAndMoon = ({
         const stars = new THREE.Points(starGeometry, starMaterial);
         scene.add(stars);
 
-        // --- Earth Group ---
-        const earthGroup = new THREE.Group();
-        earthGroup.rotation.z = 23.4 * Math.PI / 180;
-        scene.add(earthGroup);
+        // --- Uranus Group ---
+        const uranusGroup = new THREE.Group();
+        // Uranus has an extreme axial tilt of ~98 degrees
+        uranusGroup.rotation.z = 97.8 * Math.PI / 180;
+        scene.add(uranusGroup);
 
-        // Earth Surface
-        const earthGeometry = new THREE.SphereGeometry(earthSize, 64, 64);
-        const earthMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg'),
-            specularMap: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg'),
-            normalMap: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_normal_2048.jpg'),
-            specular: new THREE.Color(0x333333),
-            shininess: 15
+        // Uranus Surface
+        const uranusGeometry = new THREE.SphereGeometry(uranusSize, 64, 64);
+        const uranusMaterial = new THREE.MeshPhongMaterial({
+            map: textureLoader.load('uranus.jpg'),
+            shininess: 10
         });
-        const earth = new THREE.Mesh(earthGeometry, earthMaterial);
-        earth.castShadow = true;
-        earth.receiveShadow = true;
-        earthGroup.add(earth);
+        const uranus = new THREE.Mesh(uranusGeometry, uranusMaterial);
+        uranus.castShadow = true;
+        uranus.receiveShadow = true;
+        uranusGroup.add(uranus);
 
-        // Atmosphere Glow
-        const atmosphereGeometry = new THREE.SphereGeometry(earthSize + 0.02, 64, 64);
-        const atmosphereMaterial = new THREE.MeshPhongMaterial({
-            color: 0x06b6d4,
+        // Uranus Rings - Base Mesh
+        // Increased segments to 128 for smoother shadow edges
+        const ringGeometry = new THREE.RingGeometry(ringInnerRadius, ringOuterRadius, 128);
+        const ringMaterial = new THREE.MeshPhongMaterial({
+            map: textureLoader.load('uranus_ring.png'),
             transparent: true,
-            opacity: atmosphereOpacity,
-            side: THREE.BackSide,
-            blending: THREE.AdditiveBlending,
-        });
-        const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
-        scene.add(atmosphere);
-
-        // Clouds
-        const cloudGeometry = new THREE.SphereGeometry(earthSize + 0.005, 64, 64);
-        const cloudMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_1024.png'),
-            transparent: true,
-            opacity: cloudOpacity,
-            blending: THREE.AdditiveBlending,
-            side: THREE.DoubleSide
-        });
-        const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
-        earthGroup.add(clouds);
-
-        // --- Moon Setup ---
-        const moonOrbitGroup = new THREE.Group();
-        moonOrbitGroup.rotation.z = 15 * Math.PI / 180;
-        scene.add(moonOrbitGroup);
-
-        const moonGeometry = new THREE.SphereGeometry(moonSize, 32, 32);
-        const moonMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg'),
+            opacity: 0.7,
+            side: THREE.DoubleSide,
             shininess: 5,
+            depthWrite: false
         });
-        const moon = new THREE.Mesh(moonGeometry, moonMaterial);
-        moon.position.set(moonDistance, 0, 0);
-        moon.castShadow = true;
-        moon.receiveShadow = true;
-        moonOrbitGroup.add(moon);
 
+        const pos = ringGeometry.attributes.position;
+        const uv = ringGeometry.attributes.uv;
+        for (let i = 0; i < pos.count; i++) {
+            const r = Math.sqrt(pos.getX(i) ** 2 + pos.getY(i) ** 2);
+            const u = (r - ringInnerRadius) / (ringOuterRadius - ringInnerRadius);
+            uv.setXY(i, u, 0.5);
+        }
+
+        const rings = new THREE.Mesh(ringGeometry, ringMaterial);
+        rings.rotation.x = Math.PI / 2;
+        rings.castShadow = true;
+        rings.receiveShadow = true;
+        uranusGroup.add(rings);
+
+        // --- Particle Ring System (Dark, faint rings) ---
+        const particleRingLayers = [];
+        const particleGeometry = new THREE.BufferGeometry();
+        const positions = [];
+        const colors = [];
+        const sizes = [];
+
+        for (let i = 0; i < ringParticleCount; i++) {
+            const radius = ringInnerRadius + Math.random() * (ringOuterRadius - ringInnerRadius);
+            const angle = Math.random() * Math.PI * 2;
+
+            // Generate flat on X-Y plane to match ring orientation (will rotate x=90)
+            const x = Math.cos(angle) * radius;
+            const y = Math.sin(angle) * radius;
+            const z = (Math.random() - 0.5) * 0.01; // Extremely thin vertical spread
+
+            positions.push(x, y, z);
+
+            const color = new THREE.Color();
+            // Uranus rings are very dark and narrow (charcoal/blackish)
+            const shade = 0.1 + Math.random() * 0.2;
+            color.setRGB(shade, shade, shade + 0.05); // Slight bluish tint to dark grey
+
+            colors.push(color.r, color.g, color.b);
+            sizes.push(0.002 + Math.random() * 0.003);
+        }
+
+        particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        particleGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+        particleGeometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+
+        const particleMaterial = new THREE.PointsMaterial({
+            size: 0.004,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.NormalBlending, // Normal blending for dark particles
+            depthWrite: false,
+            sizeAttenuation: true
+        });
+
+        const particleRing = new THREE.Points(particleGeometry, particleMaterial);
+        particleRing.rotation.x = Math.PI / 2;
+
+        particleRingLayers.push({
+            mesh: particleRing,
+            speed: particleRotationSpeed
+        });
+        uranusGroup.add(particleRing);
 
         // --- Lighting ---
         const ambientLight = new THREE.AmbientLight(0x111111);
@@ -259,11 +298,13 @@ const EarthAndMoon = ({
         const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
         sunLight.position.set(5, 3, 5);
         sunLight.castShadow = true;
-        sunLight.shadow.mapSize.width = 1024;
-        sunLight.shadow.mapSize.height = 1024;
+        // Increased map size for smoother shadows
+        sunLight.shadow.mapSize.width = 4096;
+        sunLight.shadow.mapSize.height = 4096;
+        sunLight.shadow.bias = -0.0001; // Bias to prevent acne
         scene.add(sunLight);
 
-        const rimLight = new THREE.DirectionalLight(0x06b6d4, 0.8);
+        const rimLight = new THREE.DirectionalLight(0x4fd0e7, 0.8);
         rimLight.position.set(-5, 1, -5);
         scene.add(rimLight);
 
@@ -271,7 +312,10 @@ const EarthAndMoon = ({
 
         // --- Interaction State ---
         let targetRotationX = 0;
-        let targetRotationY = 0;
+        // Initialize Y rotation to ~45 degrees to match the oblique view in the image
+        // Since the planet is tilted 98 degrees on Z, rotating Y rotates the "view" of the rings
+        let targetRotationY = Math.PI / 4;
+
         let targetRotationXOnMouseDown = 0;
         let targetRotationYOnMouseDown = 0;
         let mouseX = 0;
@@ -312,7 +356,7 @@ const EarthAndMoon = ({
         const onDocumentMouseUp = () => {
             isMouseDown = false;
             setIsDragging(false);
-            setRotationSpeed(earthRotationSpeed / 2);
+            setRotationSpeed(uranusRotationSpeed / 2);
         };
 
         const onTouchStart = (event) => {
@@ -348,27 +392,30 @@ const EarthAndMoon = ({
         let animationId;
         const animate = () => {
             animationId = requestAnimationFrame(animate);
-            if (!isMouseDown && autoRotate) targetRotationY += earthRotationSpeed;
+            if (!isMouseDown && autoRotate) targetRotationY += uranusRotationSpeed;
 
-            earthGroup.rotation.y += (targetRotationY - earthGroup.rotation.y) * 0.05;
-            earthGroup.rotation.x += (targetRotationX - earthGroup.rotation.x) * 0.05;
-            clouds.rotation.y += 0.0004;
+            uranusGroup.rotation.y += (targetRotationY - uranusGroup.rotation.y) * 0.05;
+            uranusGroup.rotation.x += (targetRotationX - uranusGroup.rotation.x) * 0.05;
 
-            // Rotate Starfields and Background
-            stars.rotation.y -= 0.002;
-            backgroundSphere.rotation.y -= 0.0004;
+            rings.rotation.z += ringRotationSpeed;
 
-            moonOrbitGroup.rotation.y += moonOrbitSpeed;
-            moon.rotation.y += 0.01;
+            // Rotate particle rings
+            particleRingLayers.forEach(layer => {
+                layer.mesh.rotation.z += layer.speed;
+            });
+
+            // Rotate Starfields
+            stars.rotation.y -= 0.0009;
+            backgroundSphere.rotation.y -= 0.0009;
 
             const time = Date.now() * 0.001;
             const colors = starGeometry.attributes.color.array;
             for (let i = 0; i < starCount; i++) {
                 const { speed, phase } = starBlinkParams[i];
                 const brightness = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(time * speed + phase));
-                colors[i * 3] = brightness;     // R
-                colors[i * 3 + 1] = brightness; // G
-                colors[i * 3 + 2] = brightness; // B
+                colors[i * 3] = brightness;
+                colors[i * 3 + 1] = brightness;
+                colors[i * 3 + 2] = brightness;
             }
             starGeometry.attributes.color.needsUpdate = true;
 
@@ -398,10 +445,14 @@ const EarthAndMoon = ({
             if (mountRef.current && renderer.domElement) {
                 mountRef.current.removeChild(renderer.domElement);
             }
-            earthGeometry.dispose();
-            earthMaterial.dispose();
-            moonGeometry.dispose();
-            moonMaterial.dispose();
+            uranusGeometry.dispose();
+            uranusMaterial.dispose();
+            ringGeometry.dispose();
+            ringMaterial.dispose();
+            particleRingLayers.forEach(layer => {
+                layer.mesh.geometry.dispose();
+                layer.mesh.material.dispose();
+            });
             starGeometry.dispose();
             starMaterial.dispose();
             bgGeometry.dispose();
@@ -428,7 +479,7 @@ const EarthAndMoon = ({
             {/* 3D Canvas Container */}
             <div ref={mountRef} className="absolute inset-0 z-0 cursor-move" />
 
-            {/* Background Ambience - Earthy Blues/Teals */}
+            {/* Background Ambience - Cool Uranus Colors (Cyan/Blue) */}
             <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-900/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-70"></div>
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-900/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-70"></div>
 
@@ -449,10 +500,8 @@ const EarthAndMoon = ({
                 </div>
             )}
 
-            {/* All Overlay UI Elements have been removed as requested */}
-
         </div>
     );
 };
 
-export default EarthAndMoon;
+export default Uranus;

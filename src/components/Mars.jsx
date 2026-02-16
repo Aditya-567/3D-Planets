@@ -16,7 +16,7 @@ const loadThree = () => {
     });
 };
 
-const EarthAndMoon = ({
+const Mars = ({
     // Positioning
     top,
     bottom,
@@ -26,19 +26,22 @@ const EarthAndMoon = ({
     style = {},
 
     // Customization
-    earthSize = 0.6,
-    moonSize = 0.09,
-    moonDistance = 1.0,
-    moonOrbitSpeed = 0.02,
-    earthRotationSpeed = 0.001,
-    cloudOpacity = 0.4,
-    atmosphereOpacity = 0.15,
+    marsSize = 0.6,
+    phobosSize = 0.05,
+    deimosSize = 0.04,
+    phobosDistance = 0.8,
+    deimosDistance = 1.2,
+    phobosOrbitSpeed = 0.03,
+    deimosOrbitSpeed = 0.015,
+    marsRotationSpeed = 0.001,
+    orbitOpacity = 0.06, // Configurable orbit visibility
+    tailOpacity = 0.8,  // Configurable tail visibility
     starCount = 8000,
     autoRotate = true
 }) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
-    const [rotationSpeed, setRotationSpeed] = useState(earthRotationSpeed);
+    const [rotationSpeed, setRotationSpeed] = useState(marsRotationSpeed);
     const [isDragging, setIsDragging] = useState(false);
     const [coordinates, setCoordinates] = useState({ lat: 0, long: 0 });
 
@@ -91,26 +94,27 @@ const EarthAndMoon = ({
         const textureLoader = new THREE.TextureLoader();
 
         // --- 1. BACKGROUND SPHERE (8k Stars) ---
-        const bgGeometry = new THREE.SphereGeometry(2500, 64, 64);
+        const bgGeometry = new THREE.SphereGeometry(4000, 64, 64);
         const bgTexture = textureLoader.load('8k_stars.png');
         const bgMaterial = new THREE.MeshBasicMaterial({
             map: bgTexture,
             side: THREE.BackSide,
             transparent: true,
-            opacity: 0.6,
-            depthWrite: false
+            opacity: 0.4,
+            depthWrite: false,
+            fog: false
         });
         const backgroundSphere = new THREE.Mesh(bgGeometry, bgMaterial);
         scene.add(backgroundSphere);
 
-        // --- 2. GALAXY SPHERE (Nebula particles - Earth tones: Blue/Green/White) ---
+        // --- 2. GALAXY SPHERE (Nebula particles - Red/Rust/Orange tones for Mars) ---
         const galaxyCount = 20000;
         const galaxyGeometry = new THREE.BufferGeometry();
         const galaxyMaterial = new THREE.PointsMaterial({
             size: 0.8,
             vertexColors: true,
             transparent: true,
-            opacity: 0.5,
+            opacity: 0.3,
             blending: THREE.AdditiveBlending,
             depthWrite: false
         });
@@ -132,10 +136,10 @@ const EarthAndMoon = ({
             const col = new THREE.Color();
             const rand = Math.random();
 
-            // Earth Theme: Blues, Greens, and White
-            if (rand > 0.6) col.setHex(0x1e90ff); // Dodger Blue
-            else if (rand > 0.3) col.setHex(0x3cb371); // Medium Sea Green
-            else col.setHex(0xf0f8ff); // Alice Blue
+            // Mars Theme: Deep Reds, Rusty Oranges, and Burnt Sienna
+            if (rand > 0.6) col.setHex(0xb22222); // Firebrick
+            else if (rand > 0.3) col.setHex(0xd2691e); // Chocolate
+            else col.setHex(0xff4500); // OrangeRed
 
             const intensity = 0.3 + Math.random() * 0.7;
             col.multiplyScalar(intensity);
@@ -192,65 +196,129 @@ const EarthAndMoon = ({
         const stars = new THREE.Points(starGeometry, starMaterial);
         scene.add(stars);
 
-        // --- Earth Group ---
-        const earthGroup = new THREE.Group();
-        earthGroup.rotation.z = 23.4 * Math.PI / 180;
-        scene.add(earthGroup);
+        // --- Mars Group ---
+        const marsGroup = new THREE.Group();
+        marsGroup.rotation.z = 25.2 * Math.PI / 180;
+        scene.add(marsGroup);
 
-        // Earth Surface
-        const earthGeometry = new THREE.SphereGeometry(earthSize, 64, 64);
-        const earthMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg'),
-            specularMap: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg'),
-            normalMap: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_normal_2048.jpg'),
-            specular: new THREE.Color(0x333333),
-            shininess: 15
+        // Mars Surface
+        const marsGeometry = new THREE.SphereGeometry(marsSize, 64, 64);
+        const marsMaterial = new THREE.MeshPhongMaterial({
+            map: textureLoader.load('marsmap.jpg'),
+            shininess: 5
         });
-        const earth = new THREE.Mesh(earthGeometry, earthMaterial);
-        earth.castShadow = true;
-        earth.receiveShadow = true;
-        earthGroup.add(earth);
+        const mars = new THREE.Mesh(marsGeometry, marsMaterial);
+        mars.castShadow = true;
+        mars.receiveShadow = true;
+        marsGroup.add(mars);
 
-        // Atmosphere Glow
-        const atmosphereGeometry = new THREE.SphereGeometry(earthSize + 0.02, 64, 64);
-        const atmosphereMaterial = new THREE.MeshPhongMaterial({
-            color: 0x06b6d4,
-            transparent: true,
-            opacity: atmosphereOpacity,
-            side: THREE.BackSide,
-            blending: THREE.AdditiveBlending,
+        // --- Moons (Phobos & Deimos) ---
+        const moonsGroup = new THREE.Group();
+        marsGroup.add(moonsGroup); // Add to mars group so they share the axial tilt
+
+        const moonsData = [
+            {
+                name: "Phobos",
+                size: phobosSize,
+                distance: phobosDistance,
+                speed: phobosOrbitSpeed,
+                inclination: 18 * Math.PI / 180, // Specific inclination for Phobos orbit
+                color: 0xffffff,
+                texture: 'moon.jpg'
+            },
+            {
+                name: "Deimos",
+                size: deimosSize,
+                distance: deimosDistance,
+                speed: deimosOrbitSpeed,
+                inclination: -4 * Math.PI / 180, // Specific inclination for Deimos orbit
+                color: 0xffffff,
+                texture: 'moon.jpg'
+            }
+        ];
+
+        const activeMoons = [];
+
+        moonsData.forEach(moon => {
+            // Each moon gets its own inclination group to handle the orbit tilt
+            const inclinationGroup = new THREE.Group();
+            inclinationGroup.rotation.z = moon.inclination; // Rotate around Z to tilt the orbit plane
+            moonsGroup.add(inclinationGroup);
+
+            // 1. Static Orbit Line (0.2 Opacity)
+            const orbitCurve = new THREE.EllipseCurve(
+                0, 0,            // ax, ay
+                moon.distance, moon.distance, // xRadius, yRadius
+                0, 2 * Math.PI,  // aStartAngle, aEndAngle
+                false,           // aClockwise
+                0                // aRotation
+            );
+            const orbitPoints = orbitCurve.getPoints(100);
+            const orbitGeometry = new THREE.BufferGeometry().setFromPoints(orbitPoints);
+            orbitGeometry.rotateX(Math.PI / 2); // Rotate to lay flat on the XZ plane of the inclination group
+
+            const orbitMaterial = new THREE.LineBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: orbitOpacity
+            });
+            const orbitLine = new THREE.Line(orbitGeometry, orbitMaterial);
+            inclinationGroup.add(orbitLine);
+
+            // 2. Moon Mesh
+            const geometry = new THREE.SphereGeometry(moon.size, 32, 32);
+            const material = new THREE.MeshPhongMaterial({
+                map: textureLoader.load(moon.texture),
+                shininess: 5
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+
+            // Initial position (will be updated in animation loop)
+            const startAngle = Math.random() * Math.PI * 2;
+            mesh.position.set(Math.cos(startAngle) * moon.distance, 0, Math.sin(startAngle) * moon.distance);
+            inclinationGroup.add(mesh);
+
+            // 3. Trail / Comet Tail (0.6 Opacity)
+            const trailLength = 100;
+            const trailGeometry = new THREE.BufferGeometry();
+            const trailPositions = new Float32Array(trailLength * 3);
+            const trailColors = new Float32Array(trailLength * 3);
+
+            // Init trail positions
+            for (let i = 0; i < trailLength; i++) {
+                trailPositions[i * 3] = mesh.position.x;
+                trailPositions[i * 3 + 1] = mesh.position.y;
+                trailPositions[i * 3 + 2] = mesh.position.z;
+
+                const alpha = 1 - (i / trailLength);
+                trailColors[i * 3] = 1.0 * alpha;
+                trailColors[i * 3 + 1] = 1.0 * alpha;
+                trailColors[i * 3 + 2] = 1.0 * alpha;
+            }
+
+            trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+            trailGeometry.setAttribute('color', new THREE.BufferAttribute(trailColors, 3));
+
+            const trailMaterial = new THREE.LineBasicMaterial({
+                vertexColors: true,
+                transparent: true,
+                opacity: tailOpacity,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            const trail = new THREE.Line(trailGeometry, trailMaterial);
+            inclinationGroup.add(trail);
+
+            activeMoons.push({
+                mesh: mesh,
+                trail: trail,
+                data: moon,
+                angle: startAngle
+            });
         });
-        const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
-        scene.add(atmosphere);
-
-        // Clouds
-        const cloudGeometry = new THREE.SphereGeometry(earthSize + 0.005, 64, 64);
-        const cloudMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_1024.png'),
-            transparent: true,
-            opacity: cloudOpacity,
-            blending: THREE.AdditiveBlending,
-            side: THREE.DoubleSide
-        });
-        const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
-        earthGroup.add(clouds);
-
-        // --- Moon Setup ---
-        const moonOrbitGroup = new THREE.Group();
-        moonOrbitGroup.rotation.z = 15 * Math.PI / 180;
-        scene.add(moonOrbitGroup);
-
-        const moonGeometry = new THREE.SphereGeometry(moonSize, 32, 32);
-        const moonMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg'),
-            shininess: 5,
-        });
-        const moon = new THREE.Mesh(moonGeometry, moonMaterial);
-        moon.position.set(moonDistance, 0, 0);
-        moon.castShadow = true;
-        moon.receiveShadow = true;
-        moonOrbitGroup.add(moon);
-
 
         // --- Lighting ---
         const ambientLight = new THREE.AmbientLight(0x111111);
@@ -263,7 +331,7 @@ const EarthAndMoon = ({
         sunLight.shadow.mapSize.height = 1024;
         scene.add(sunLight);
 
-        const rimLight = new THREE.DirectionalLight(0x06b6d4, 0.8);
+        const rimLight = new THREE.DirectionalLight(0xc1440e, 0.8);
         rimLight.position.set(-5, 1, -5);
         scene.add(rimLight);
 
@@ -312,7 +380,7 @@ const EarthAndMoon = ({
         const onDocumentMouseUp = () => {
             isMouseDown = false;
             setIsDragging(false);
-            setRotationSpeed(earthRotationSpeed / 2);
+            setRotationSpeed(marsRotationSpeed / 2);
         };
 
         const onTouchStart = (event) => {
@@ -348,27 +416,48 @@ const EarthAndMoon = ({
         let animationId;
         const animate = () => {
             animationId = requestAnimationFrame(animate);
-            if (!isMouseDown && autoRotate) targetRotationY += earthRotationSpeed;
+            if (!isMouseDown && autoRotate) targetRotationY += marsRotationSpeed;
 
-            earthGroup.rotation.y += (targetRotationY - earthGroup.rotation.y) * 0.05;
-            earthGroup.rotation.x += (targetRotationX - earthGroup.rotation.x) * 0.05;
-            clouds.rotation.y += 0.0004;
+            marsGroup.rotation.y += (targetRotationY - marsGroup.rotation.y) * 0.05;
+            marsGroup.rotation.x += (targetRotationX - marsGroup.rotation.x) * 0.05;
 
-            // Rotate Starfields and Background
-            stars.rotation.y -= 0.002;
-            backgroundSphere.rotation.y -= 0.0004;
+            // Rotate Starfields
+            stars.rotation.y -= 0.0009;
+            backgroundSphere.rotation.y -= 0.0009;
 
-            moonOrbitGroup.rotation.y += moonOrbitSpeed;
-            moon.rotation.y += 0.01;
+            // Animate Moons and Trails
+            activeMoons.forEach(obj => {
+                // Update Angle
+                obj.angle += obj.data.speed;
+                const newX = Math.cos(obj.angle) * obj.data.distance;
+                const newZ = Math.sin(obj.angle) * obj.data.distance;
+
+                obj.mesh.position.set(newX, 0, newZ);
+                obj.mesh.rotation.y += 0.01;
+
+                // Update Trail
+                const positions = obj.trail.geometry.attributes.position.array;
+                // Shift positions down to create trail effect
+                for (let i = positions.length - 1; i > 2; i -= 3) {
+                    positions[i] = positions[i - 3];     // z
+                    positions[i - 1] = positions[i - 4]; // y
+                    positions[i - 2] = positions[i - 5]; // x
+                }
+                // Set head to new pos
+                positions[0] = newX;
+                positions[1] = 0;
+                positions[2] = newZ;
+                obj.trail.geometry.attributes.position.needsUpdate = true;
+            });
 
             const time = Date.now() * 0.001;
             const colors = starGeometry.attributes.color.array;
             for (let i = 0; i < starCount; i++) {
                 const { speed, phase } = starBlinkParams[i];
                 const brightness = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(time * speed + phase));
-                colors[i * 3] = brightness;     // R
-                colors[i * 3 + 1] = brightness; // G
-                colors[i * 3 + 2] = brightness; // B
+                colors[i * 3] = brightness;
+                colors[i * 3 + 1] = brightness;
+                colors[i * 3 + 2] = brightness;
             }
             starGeometry.attributes.color.needsUpdate = true;
 
@@ -398,10 +487,14 @@ const EarthAndMoon = ({
             if (mountRef.current && renderer.domElement) {
                 mountRef.current.removeChild(renderer.domElement);
             }
-            earthGeometry.dispose();
-            earthMaterial.dispose();
-            moonGeometry.dispose();
-            moonMaterial.dispose();
+            marsGeometry.dispose();
+            marsMaterial.dispose();
+            activeMoons.forEach(m => {
+                m.mesh.geometry.dispose();
+                m.mesh.material.dispose();
+                m.trail.geometry.dispose();
+                m.trail.material.dispose();
+            });
             starGeometry.dispose();
             starMaterial.dispose();
             bgGeometry.dispose();
@@ -414,7 +507,7 @@ const EarthAndMoon = ({
 
     return (
         <div
-            className={`relative w-full h-screen bg-black text-white overflow-hidden font-sans selection:bg-cyan-500/30 ${className}`}
+            className={`relative w-full h-screen bg-black text-white overflow-hidden font-sans selection:bg-orange-500/30 ${className}`}
             style={{
                 position: top || bottom || left || right ? 'absolute' : 'relative',
                 top,
@@ -428,9 +521,9 @@ const EarthAndMoon = ({
             {/* 3D Canvas Container */}
             <div ref={mountRef} className="absolute inset-0 z-0 cursor-move" />
 
-            {/* Background Ambience - Earthy Blues/Teals */}
-            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-900/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-70"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-900/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-70"></div>
+            {/* Background Ambience - Rusty Red/Orange tones for Mars */}
+            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-red-900/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-60"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-orange-900/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-60"></div>
 
             {/* Grid Overlay - subtle texture */}
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none"></div>
@@ -441,18 +534,16 @@ const EarthAndMoon = ({
                     <div className="flex flex-col items-center gap-6">
                         <div className="relative">
                             <div className="w-16 h-16 border-2 border-slate-800 rounded-full"></div>
-                            <div className="absolute top-0 left-0 w-16 h-16 border-2 border-t-cyan-500 rounded-full animate-spin"></div>
-                            <div className="absolute top-2 left-2 w-12 h-12 bg-cyan-500/10 rounded-full animate-pulse"></div>
+                            <div className="absolute top-0 left-0 w-16 h-16 border-2 border-t-red-500 rounded-full animate-spin"></div>
+                            <div className="absolute top-2 left-2 w-12 h-12 bg-red-500/10 rounded-full animate-pulse"></div>
                         </div>
-                        <p className="text-cyan-500 font-mono tracking-[0.2em] text-xs uppercase animate-pulse">Initializing Telemetry...</p>
+                        <p className="text-red-500 font-mono tracking-[0.2em] text-xs uppercase animate-pulse">Initializing Telemetry...</p>
                     </div>
                 </div>
             )}
-
-            {/* All Overlay UI Elements have been removed as requested */}
 
         </div>
     );
 };
 
-export default EarthAndMoon;
+export default Mars;

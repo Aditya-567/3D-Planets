@@ -16,7 +16,7 @@ const loadThree = () => {
     });
 };
 
-const EarthAndMoon = ({
+const Mercury = ({
     // Positioning
     top,
     bottom,
@@ -26,19 +26,14 @@ const EarthAndMoon = ({
     style = {},
 
     // Customization
-    earthSize = 0.6,
-    moonSize = 0.09,
-    moonDistance = 1.0,
-    moonOrbitSpeed = 0.02,
-    earthRotationSpeed = 0.001,
-    cloudOpacity = 0.4,
-    atmosphereOpacity = 0.15,
+    mercurySize = 0.6,
+    mercuryRotationSpeed = 0.001,
     starCount = 8000,
     autoRotate = true
 }) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
-    const [rotationSpeed, setRotationSpeed] = useState(earthRotationSpeed);
+    const [rotationSpeed, setRotationSpeed] = useState(mercuryRotationSpeed);
     const [isDragging, setIsDragging] = useState(false);
     const [coordinates, setCoordinates] = useState({ lat: 0, long: 0 });
 
@@ -103,7 +98,7 @@ const EarthAndMoon = ({
         const backgroundSphere = new THREE.Mesh(bgGeometry, bgMaterial);
         scene.add(backgroundSphere);
 
-        // --- 2. GALAXY SPHERE (Nebula particles - Earth tones: Blue/Green/White) ---
+        // --- 2. GALAXY SPHERE (Nebula particles - Rocky/Hot tones for Mercury) ---
         const galaxyCount = 20000;
         const galaxyGeometry = new THREE.BufferGeometry();
         const galaxyMaterial = new THREE.PointsMaterial({
@@ -132,10 +127,10 @@ const EarthAndMoon = ({
             const col = new THREE.Color();
             const rand = Math.random();
 
-            // Earth Theme: Blues, Greens, and White
-            if (rand > 0.6) col.setHex(0x1e90ff); // Dodger Blue
-            else if (rand > 0.3) col.setHex(0x3cb371); // Medium Sea Green
-            else col.setHex(0xf0f8ff); // Alice Blue
+            // Mercury Theme: Greys, Whites, and subtle burnt Oranges
+            if (rand > 0.6) col.setHex(0xaaaaaa); // Grey
+            else if (rand > 0.3) col.setHex(0xffffff); // White
+            else col.setHex(0xcd853f); // Peru (Brownish Orange)
 
             const intensity = 0.3 + Math.random() * 0.7;
             col.multiplyScalar(intensity);
@@ -192,65 +187,21 @@ const EarthAndMoon = ({
         const stars = new THREE.Points(starGeometry, starMaterial);
         scene.add(stars);
 
-        // --- Earth Group ---
-        const earthGroup = new THREE.Group();
-        earthGroup.rotation.z = 23.4 * Math.PI / 180;
-        scene.add(earthGroup);
+        // --- Mercury Group ---
+        const mercuryGroup = new THREE.Group();
+        mercuryGroup.rotation.z = 0.034 * Math.PI / 180;
+        scene.add(mercuryGroup);
 
-        // Earth Surface
-        const earthGeometry = new THREE.SphereGeometry(earthSize, 64, 64);
-        const earthMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg'),
-            specularMap: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg'),
-            normalMap: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_normal_2048.jpg'),
-            specular: new THREE.Color(0x333333),
-            shininess: 15
+        // Mercury Surface
+        const mercuryGeometry = new THREE.SphereGeometry(mercurySize, 64, 64);
+        const mercuryMaterial = new THREE.MeshPhongMaterial({
+            map: textureLoader.load('mercury.jpg'),
+            shininess: 5
         });
-        const earth = new THREE.Mesh(earthGeometry, earthMaterial);
-        earth.castShadow = true;
-        earth.receiveShadow = true;
-        earthGroup.add(earth);
-
-        // Atmosphere Glow
-        const atmosphereGeometry = new THREE.SphereGeometry(earthSize + 0.02, 64, 64);
-        const atmosphereMaterial = new THREE.MeshPhongMaterial({
-            color: 0x06b6d4,
-            transparent: true,
-            opacity: atmosphereOpacity,
-            side: THREE.BackSide,
-            blending: THREE.AdditiveBlending,
-        });
-        const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
-        scene.add(atmosphere);
-
-        // Clouds
-        const cloudGeometry = new THREE.SphereGeometry(earthSize + 0.005, 64, 64);
-        const cloudMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_1024.png'),
-            transparent: true,
-            opacity: cloudOpacity,
-            blending: THREE.AdditiveBlending,
-            side: THREE.DoubleSide
-        });
-        const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
-        earthGroup.add(clouds);
-
-        // --- Moon Setup ---
-        const moonOrbitGroup = new THREE.Group();
-        moonOrbitGroup.rotation.z = 15 * Math.PI / 180;
-        scene.add(moonOrbitGroup);
-
-        const moonGeometry = new THREE.SphereGeometry(moonSize, 32, 32);
-        const moonMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg'),
-            shininess: 5,
-        });
-        const moon = new THREE.Mesh(moonGeometry, moonMaterial);
-        moon.position.set(moonDistance, 0, 0);
-        moon.castShadow = true;
-        moon.receiveShadow = true;
-        moonOrbitGroup.add(moon);
-
+        const mercury = new THREE.Mesh(mercuryGeometry, mercuryMaterial);
+        mercury.castShadow = true;
+        mercury.receiveShadow = true;
+        mercuryGroup.add(mercury);
 
         // --- Lighting ---
         const ambientLight = new THREE.AmbientLight(0x111111);
@@ -263,7 +214,7 @@ const EarthAndMoon = ({
         sunLight.shadow.mapSize.height = 1024;
         scene.add(sunLight);
 
-        const rimLight = new THREE.DirectionalLight(0x06b6d4, 0.8);
+        const rimLight = new THREE.DirectionalLight(0x888888, 0.8);
         rimLight.position.set(-5, 1, -5);
         scene.add(rimLight);
 
@@ -312,7 +263,7 @@ const EarthAndMoon = ({
         const onDocumentMouseUp = () => {
             isMouseDown = false;
             setIsDragging(false);
-            setRotationSpeed(earthRotationSpeed / 2);
+            setRotationSpeed(mercuryRotationSpeed / 2);
         };
 
         const onTouchStart = (event) => {
@@ -348,27 +299,23 @@ const EarthAndMoon = ({
         let animationId;
         const animate = () => {
             animationId = requestAnimationFrame(animate);
-            if (!isMouseDown && autoRotate) targetRotationY += earthRotationSpeed;
+            if (!isMouseDown && autoRotate) targetRotationY += mercuryRotationSpeed;
 
-            earthGroup.rotation.y += (targetRotationY - earthGroup.rotation.y) * 0.05;
-            earthGroup.rotation.x += (targetRotationX - earthGroup.rotation.x) * 0.05;
-            clouds.rotation.y += 0.0004;
+            mercuryGroup.rotation.y += (targetRotationY - mercuryGroup.rotation.y) * 0.05;
+            mercuryGroup.rotation.x += (targetRotationX - mercuryGroup.rotation.x) * 0.05;
 
             // Rotate Starfields and Background
-            stars.rotation.y -= 0.002;
-            backgroundSphere.rotation.y -= 0.0004;
-
-            moonOrbitGroup.rotation.y += moonOrbitSpeed;
-            moon.rotation.y += 0.01;
+            stars.rotation.y -= 0.0009;
+            backgroundSphere.rotation.y -= 0.0009;
 
             const time = Date.now() * 0.001;
             const colors = starGeometry.attributes.color.array;
             for (let i = 0; i < starCount; i++) {
                 const { speed, phase } = starBlinkParams[i];
                 const brightness = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(time * speed + phase));
-                colors[i * 3] = brightness;     // R
-                colors[i * 3 + 1] = brightness; // G
-                colors[i * 3 + 2] = brightness; // B
+                colors[i * 3] = brightness;
+                colors[i * 3 + 1] = brightness;
+                colors[i * 3 + 2] = brightness;
             }
             starGeometry.attributes.color.needsUpdate = true;
 
@@ -398,10 +345,8 @@ const EarthAndMoon = ({
             if (mountRef.current && renderer.domElement) {
                 mountRef.current.removeChild(renderer.domElement);
             }
-            earthGeometry.dispose();
-            earthMaterial.dispose();
-            moonGeometry.dispose();
-            moonMaterial.dispose();
+            mercuryGeometry.dispose();
+            mercuryMaterial.dispose();
             starGeometry.dispose();
             starMaterial.dispose();
             bgGeometry.dispose();
@@ -414,7 +359,7 @@ const EarthAndMoon = ({
 
     return (
         <div
-            className={`relative w-full h-screen bg-black text-white overflow-hidden font-sans selection:bg-cyan-500/30 ${className}`}
+            className={`relative w-full h-screen bg-black text-white overflow-hidden font-sans selection:bg-orange-500/30 ${className}`}
             style={{
                 position: top || bottom || left || right ? 'absolute' : 'relative',
                 top,
@@ -428,9 +373,9 @@ const EarthAndMoon = ({
             {/* 3D Canvas Container */}
             <div ref={mountRef} className="absolute inset-0 z-0 cursor-move" />
 
-            {/* Background Ambience - Earthy Blues/Teals */}
-            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-900/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-70"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-900/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-70"></div>
+            {/* Background Ambience - Rocky Grey/Orange tones for Mercury */}
+            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-gray-800/20 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-60"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-orange-900/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-60"></div>
 
             {/* Grid Overlay - subtle texture */}
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none"></div>
@@ -441,18 +386,16 @@ const EarthAndMoon = ({
                     <div className="flex flex-col items-center gap-6">
                         <div className="relative">
                             <div className="w-16 h-16 border-2 border-slate-800 rounded-full"></div>
-                            <div className="absolute top-0 left-0 w-16 h-16 border-2 border-t-cyan-500 rounded-full animate-spin"></div>
-                            <div className="absolute top-2 left-2 w-12 h-12 bg-cyan-500/10 rounded-full animate-pulse"></div>
+                            <div className="absolute top-0 left-0 w-16 h-16 border-2 border-t-gray-500 rounded-full animate-spin"></div>
+                            <div className="absolute top-2 left-2 w-12 h-12 bg-gray-500/10 rounded-full animate-pulse"></div>
                         </div>
-                        <p className="text-cyan-500 font-mono tracking-[0.2em] text-xs uppercase animate-pulse">Initializing Telemetry...</p>
+                        <p className="text-gray-500 font-mono tracking-[0.2em] text-xs uppercase animate-pulse">Initializing Telemetry...</p>
                     </div>
                 </div>
             )}
-
-            {/* All Overlay UI Elements have been removed as requested */}
 
         </div>
     );
 };
 
-export default EarthAndMoon;
+export default Mercury;

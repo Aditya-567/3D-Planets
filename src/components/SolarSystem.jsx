@@ -1,14 +1,33 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Globe, Layers, Activity, Clock, Sun as SunIcon } from 'lucide-react';
-import { roughness } from 'three/tsl';
+import { loadThree } from '../lib/threeLoader';
 
-const SolarSystem = () => {
+const SolarSystem = ({
+    // Positioning
+    top,
+    bottom,
+    left,
+    right,
+    className = "",
+    style = {},
+
+    // Customization
+    sunSize = 5.0,
+    planetSpeedMultiplier = 1.0,
+    starCount = 9000,
+    asteroidCount = 1900,
+    kuiperCount = 9000,
+    showOrbits = true,
+    showTrails = true,
+    initialDistance = 280,
+    autoRotate = true
+}) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
 
     // Camera & Interaction Refs
-    const targetDistanceRef = useRef(280);
-    const currentDistanceRef = useRef(280);
+    const targetDistanceRef = useRef(initialDistance);
+    const currentDistanceRef = useRef(initialDistance);
     const rotationSpeedRef = useRef(0.001);
     const cameraRef = useRef(null);
     const sceneRef = useRef(null);
@@ -22,22 +41,23 @@ const SolarSystem = () => {
 
     // Load Three.js dynamically
     useEffect(() => {
-        const loadThree = async () => {
-            if (window.THREE) {
-                initThree();
-                return;
-            }
+        let cancelled = false;
 
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-            script.async = true;
-            script.onload = initThree;
-            document.body.appendChild(script);
-        };
-
-        loadThree();
+        loadThree()
+            .then(() => {
+                if (!cancelled && window.THREE) {
+                    initThree();
+                }
+            })
+            .catch((error) => {
+                if (!cancelled) {
+                    console.error('Failed to load Three.js:', error);
+                    setLoading(false);
+                }
+            });
 
         return () => {
+            cancelled = true;
             if (frameIdRef.current) {
                 cancelAnimationFrame(frameIdRef.current);
             }
@@ -98,7 +118,7 @@ const SolarSystem = () => {
         sceneRef.current = scene;
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 8000);
-        camera.position.set(0, 140, 280);
+        camera.position.set(0, initialDistance * 0.5, initialDistance);
         camera.lookAt(0, 0, 0);
         cameraRef.current = camera;
 
@@ -126,7 +146,7 @@ const SolarSystem = () => {
         scene.add(solarSystemGroup);
 
         // --- 1. BACKGROUND SPHERE (8k Stars Image) ---
-        const bgGeometry = new THREE.SphereGeometry(3000, 64, 64);
+        const bgGeometry = new THREE.SphereGeometry(2500, 64, 64);
         const bgTexture = textureLoader.load('8k_stars.png');
         const bgMaterial = new THREE.MeshBasicMaterial({
             map: bgTexture,
@@ -139,7 +159,7 @@ const SolarSystem = () => {
         scene.add(backgroundSphere);
 
         // --- 2. TWINKLING STARFIELD (Particles) ---
-        const starCount = 9000;
+        const actualStarCount = starCount;
         const starGeometry = new THREE.BufferGeometry();
         const starMaterial = new THREE.PointsMaterial({
             size: 0.18,
@@ -227,8 +247,8 @@ const SolarSystem = () => {
         const sunGroup = new THREE.Group();
         solarSystemGroup.add(sunGroup);
 
-        // 1. Sun Surface 
-        const sunGeometry = new THREE.SphereGeometry(5.0, 64, 64);
+        // 1. Sun Surface
+        const sunGeometry = new THREE.SphereGeometry(sunSize, 64, 64);
         const sunTexture = textureLoader.load('8k_sun.jpg');
         const sunMaterial = new THREE.MeshBasicMaterial({
             map: sunTexture,
@@ -301,7 +321,7 @@ const SolarSystem = () => {
         scene.add(ambientLight);
 
         // --- ASTEROID BELT ---
-        const asteroidCount = 1900;
+        const actualAsteroidCount = asteroidCount;
         const asteroidGeom = new THREE.DodecahedronGeometry(0.08, 0);
         const asteroidMat = new THREE.MeshStandardMaterial({
             color: 0x888888,
@@ -310,12 +330,12 @@ const SolarSystem = () => {
             flatShading: true
         });
 
-        const asteroidMesh = new THREE.InstancedMesh(asteroidGeom, asteroidMat, asteroidCount);
+        const asteroidMesh = new THREE.InstancedMesh(asteroidGeom, asteroidMat, actualAsteroidCount);
 
         const dummy = new THREE.Object3D();
         const color = new THREE.Color();
 
-        for (let i = 0; i < asteroidCount; i++) {
+        for (let i = 0; i < actualAsteroidCount; i++) {
             const r = 29 + Math.random() * 7;
             const theta = Math.random() * Math.PI * 2;
             const y = (Math.random() - 0.5) * 2.0;
@@ -343,7 +363,7 @@ const SolarSystem = () => {
         solarSystemGroup.add(asteroidBelt);
 
         // --- KUIPER BELT ---
-        const kuiperCount = 9000;
+        const actualKuiperCount = kuiperCount;
         const kuiperGeometry = new THREE.BufferGeometry();
         const kuiperMaterial = new THREE.PointsMaterial({
             size: 0.19,
@@ -356,7 +376,7 @@ const SolarSystem = () => {
         const kuiperColors = [];
         const baseKuiperColor = new THREE.Color(0xaaccff);
 
-        for (let i = 0; i < kuiperCount; i++) {
+        for (let i = 0; i < actualKuiperCount; i++) {
             const r = 96 + Math.random() * 50;
             const theta = Math.random() * Math.PI * 2;
             const y = (Math.random() - 0.5) * 5.0;
@@ -404,7 +424,7 @@ const SolarSystem = () => {
             orbitGeom.rotateX(Math.PI / 2);
             orbitGeom.rotateZ(inclinationRad);
             orbitGeom.rotateY(nodeRad);
-            const orbitMat = new THREE.LineBasicMaterial({ color: data.orbitColor, transparent: true, opacity: 0.15 });
+            const orbitMat = new THREE.LineBasicMaterial({ color: data.orbitColor, transparent: true, opacity: showOrbits ? 0.15 : 0 });
             const orbitLine = new THREE.Line(orbitGeom, orbitMat);
             solarSystemGroup.add(orbitLine);
 
@@ -424,7 +444,7 @@ const SolarSystem = () => {
             const trailGeom = new THREE.BufferGeometry();
             trailGeom.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
             trailGeom.setAttribute('color', new THREE.BufferAttribute(trailColors, 3));
-            const trailMat = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 1.0, blending: THREE.AdditiveBlending, linewidth: 2 });
+            const trailMat = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: showTrails ? 1.0 : 0, blending: THREE.AdditiveBlending, linewidth: 2 });
             const trailLine = new THREE.Line(trailGeom, trailMat);
             solarSystemGroup.add(trailLine);
 
@@ -543,7 +563,7 @@ const SolarSystem = () => {
                 trail: trailLine,
                 moonsGroup: moonsGroup,
                 moons: moons,
-                data: data,
+                data: { ...data, speed: data.speed * planetSpeedMultiplier },
                 angle: Math.random() * Math.PI * 2,
                 xRadius: a,
                 zRadius: b,
@@ -625,7 +645,7 @@ const SolarSystem = () => {
             if (stars && stars.geometry && stars.geometry.attributes.color) {
                 const sColors = stars.geometry.attributes.color.array;
                 const time = Date.now() * 0.001;
-                for (let i = 0; i < starCount; i++) {
+                for (let i = 0; i < actualStarCount; i++) {
                     const baseR = starBaseColors[i * 3];
                     const baseG = starBaseColors[i * 3 + 1];
                     const baseB = starBaseColors[i * 3 + 2];
@@ -727,7 +747,17 @@ const SolarSystem = () => {
     };
 
     return (
-        <div className="relative w-full h-screen bg-black text-white overflow-hidden font-sans selection:bg-orange-500/30">
+        <div
+            className={`relative w-full h-screen bg-black text-white overflow-hidden font-sans selection:bg-orange-500/30 ${className}`}
+            style={{
+                position: top || bottom || left || right ? 'absolute' : 'relative',
+                top,
+                bottom,
+                left,
+                right,
+                ...style
+            }}
+        >
 
             {/* 3D Canvas Container */}
             <div ref={mountRef} className="absolute inset-0 z-0 cursor-move" />

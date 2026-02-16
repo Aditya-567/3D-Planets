@@ -1,30 +1,54 @@
 import { Activity, Clock, Globe, Layers, Navigation } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { loadThree } from '../lib/threeLoader';
 
-const EarthWithTower = () => {
+const EarthWithTower = ({
+    // Positioning
+    top,
+    bottom,
+    left,
+    right,
+    className = "",
+    style = {},
+
+    // Customization
+    earthSize = 0.6,
+    starCount = 3000,
+    signalSpeed = 0.012,
+    signalTrailLength = 30,
+    beamColors = [0x00ffcc, 0xff9900],
+    earthRotationSpeed = 0.001,
+    showTowers = true,
+    showSignals = true,
+    autoRotate = true
+}) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
 
-    const rotationSpeedRef = useRef(0.001);
+    const rotationSpeedRef = useRef(earthRotationSpeed);
     const [isDragging, setIsDragging] = useState(false);
     const [coordinates, setCoordinates] = useState({ lat: 0, long: 0 });
     const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
-        const loadThree = async () => {
-            if (window.THREE) {
-                initThree();
-                return;
-            }
+        let cancelled = false;
 
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-            script.async = true;
-            script.onload = initThree;
-            document.body.appendChild(script);
+        loadThree()
+            .then(() => {
+                if (!cancelled && window.THREE) {
+                    initThree();
+                }
+            })
+            .catch((error) => {
+                if (!cancelled) {
+                    console.error('Failed to load Three.js:', error);
+                    setLoading(false);
+                }
+            });
+
+        return () => {
+            cancelled = true;
         };
-
-        loadThree();
     }, []);
 
     useEffect(() => {
@@ -59,7 +83,6 @@ const EarthWithTower = () => {
         const textureLoader = new THREE.TextureLoader();
 
         // --- Starfield ---
-        const starCount = 3000;
         const starGeometry = new THREE.BufferGeometry();
         const starMaterial = new THREE.PointsMaterial({
             size: 0.03,
@@ -103,7 +126,7 @@ const EarthWithTower = () => {
         scene.add(earthGroup);
 
         // Earth Surface
-        const earthGeometry = new THREE.SphereGeometry(0.6, 64, 64);
+        const earthGeometry = new THREE.SphereGeometry(earthSize, 64, 64);
         const earthMaterial = new THREE.MeshPhongMaterial({
             map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg'),
             specularMap: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg'),
@@ -117,7 +140,7 @@ const EarthWithTower = () => {
         earthGroup.add(earth);
 
         // Atmosphere
-        const atmosphereGeometry = new THREE.SphereGeometry(0.62, 64, 64);
+        const atmosphereGeometry = new THREE.SphereGeometry(earthSize + 0.02, 64, 64);
         const atmosphereMaterial = new THREE.MeshPhongMaterial({
             color: 0x06b6d4,
             transparent: true,
@@ -129,7 +152,7 @@ const EarthWithTower = () => {
         scene.add(atmosphere);
 
         // Clouds
-        const cloudGeometry = new THREE.SphereGeometry(0.605, 64, 64);
+        const cloudGeometry = new THREE.SphereGeometry(earthSize + 0.005, 64, 64);
         const cloudMaterial = new THREE.MeshPhongMaterial({
             map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_1024.png'),
             transparent: true,
@@ -229,25 +252,25 @@ const EarthWithTower = () => {
         };
 
         landLocations.forEach(loc => {
-            const pos = convertLatLngToVector(loc.lat, loc.lon, 0.6);
+            const pos = convertLatLngToVector(loc.lat, loc.lon, earthSize);
             const tower = createDetailedTower();
 
             tower.position.copy(pos);
             tower.lookAt(new THREE.Vector3(0, 0, 0));
             tower.rotateX(-Math.PI / 2);
-            tower.position.setLength(0.6);
+            tower.position.setLength(earthSize);
 
-            earthGroup.add(tower);
-            towerMeshes.push(tower);
+            if (showTowers) {
+                earthGroup.add(tower);
+                towerMeshes.push(tower);
+            }
         });
 
         // --- Signal Beams (Circular Loops) ---
         const activeSignals = [];
-        const signalSpeed = 0.012;
-        const trailSegments = 30;
+        const trailSegments = signalTrailLength;
 
         // Palette from image: Cyan, Orange
-        const beamColors = [0x00ffcc, 0xff9900];
 
         // Create Connection Loops
         const towerCount = towerMeshes.length;
@@ -281,7 +304,7 @@ const EarthWithTower = () => {
                         const lineMat = new THREE.LineBasicMaterial({
                             color: colorHex,
                             transparent: true,
-                            opacity: 0.15
+                            opacity: showSignals ? 0.15 : 0
                         });
                         const line = new THREE.Line(lineGeom, lineMat);
                         earthGroup.add(line);
@@ -304,7 +327,7 @@ const EarthWithTower = () => {
                         });
 
                         const signalMesh = new THREE.Points(trailGeom, trailMat);
-                        earthGroup.add(signalMesh);
+                        if (showSignals) earthGroup.add(signalMesh);
 
                         activeSignals.push({
                             mesh: signalMesh,
@@ -408,7 +431,7 @@ const EarthWithTower = () => {
         const animate = () => {
             animationId = requestAnimationFrame(animate);
 
-            if (!isMouseDown) {
+            if (!isMouseDown && autoRotate) {
                 targetRotationY += rotationSpeedRef.current;
             }
 
@@ -487,7 +510,17 @@ const EarthWithTower = () => {
     };
 
     return (
-        <div className="relative w-full h-screen bg-black text-white overflow-hidden font-sans selection:bg-cyan-500/30">
+        <div
+            className={`relative w-full h-screen bg-black text-white overflow-hidden font-sans selection:bg-cyan-500/30 ${className}`}
+            style={{
+                position: top || bottom || left || right ? 'absolute' : 'relative',
+                top,
+                bottom,
+                left,
+                right,
+                ...style
+            }}
+        >
 
             {/* 3D Canvas Container */}
             <div ref={mountRef} className="absolute inset-0 z-0 cursor-move" />

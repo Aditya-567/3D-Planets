@@ -1,29 +1,56 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { loadThree } from '../lib/threeLoader';
 
-const EarthAndSatellite = () => {
+const EarthAndSatellite = ({
+    // Positioning
+    top,
+    bottom,
+    left,
+    right,
+    className = "",
+    style = {},
+
+    // Customization
+    earthSize = 0.6,
+    satelliteCount = 30,
+    satelliteSpeed = 0.0015,
+    satelliteSpeedVariation = 0.004,
+    satelliteOrbitRadius = 0.72,
+    satelliteOrbitVariation = 0.12,
+    beamFrequency = 0.03,
+    beamColor = 0x10b981,
+    beamFadeSpeed = 0.02,
+    starCount = 3000,
+    earthRotationSpeed = 0.001,
+    autoRotate = true
+}) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
 
     // Use a ref for rotation speed
-    const rotationSpeedRef = useRef(0.001);
+    const rotationSpeedRef = useRef(earthRotationSpeed);
     const [isDragging, setIsDragging] = useState(false);
 
     // Load Three.js
     useEffect(() => {
-        const loadThree = async () => {
-            if (window.THREE) {
-                initThree();
-                return;
-            }
+        let cancelled = false;
 
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-            script.async = true;
-            script.onload = initThree;
-            document.body.appendChild(script);
+        loadThree()
+            .then(() => {
+                if (!cancelled && window.THREE) {
+                    initThree();
+                }
+            })
+            .catch((error) => {
+                if (!cancelled) {
+                    console.error('Failed to load Three.js:', error);
+                    setLoading(false);
+                }
+            });
+
+        return () => {
+            cancelled = true;
         };
-
-        loadThree();
     }, []);
 
     const initThree = () => {
@@ -53,7 +80,6 @@ const EarthAndSatellite = () => {
         const textureLoader = new THREE.TextureLoader();
 
         // --- Starfield (Spherical Distribution) ---
-        const starCount = 3000;
         const starGeometry = new THREE.BufferGeometry();
         const starMaterial = new THREE.PointsMaterial({
             size: 0.03,
@@ -103,7 +129,7 @@ const EarthAndSatellite = () => {
         scene.add(earthGroup);
 
         // Earth Surface
-        const earthGeometry = new THREE.SphereGeometry(0.6, 64, 64);
+        const earthGeometry = new THREE.SphereGeometry(earthSize, 64, 64);
         const earthMaterial = new THREE.MeshPhongMaterial({
             map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg'),
             specularMap: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg'),
@@ -117,7 +143,7 @@ const EarthAndSatellite = () => {
         earthGroup.add(earth);
 
         // Atmosphere Glow
-        const atmosphereGeometry = new THREE.SphereGeometry(0.62, 64, 64);
+        const atmosphereGeometry = new THREE.SphereGeometry(earthSize + 0.02, 64, 64);
         const atmosphereMaterial = new THREE.MeshPhongMaterial({
             color: 0x06b6d4,
             transparent: true,
@@ -129,7 +155,7 @@ const EarthAndSatellite = () => {
         scene.add(atmosphere);
 
         // Clouds
-        const cloudGeometry = new THREE.SphereGeometry(0.605, 64, 64);
+        const cloudGeometry = new THREE.SphereGeometry(earthSize + 0.005, 64, 64);
         const cloudMaterial = new THREE.MeshPhongMaterial({
             map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_1024.png'),
             transparent: true,
@@ -146,7 +172,6 @@ const EarthAndSatellite = () => {
 
         // --- Diverse Satellite System ---
         const satellites = [];
-        const satelliteCount = 30;
 
         // Satellite Materials
         const goldFoilMat = new THREE.MeshPhongMaterial({
@@ -259,7 +284,7 @@ const EarthAndSatellite = () => {
             satMesh.scale.set(0.15, 0.15, 0.15);
 
             // Close Atom Orbit Distance
-            const distance = 0.72 + Math.random() * 0.12;
+            const distance = satelliteOrbitRadius + Math.random() * satelliteOrbitVariation;
 
             satMesh.position.set(distance, 0, 0);
             satMesh.rotation.z = Math.random() * Math.PI;
@@ -321,7 +346,7 @@ const EarthAndSatellite = () => {
 
             satellites.push({
                 group: orbitGroup,
-                speed: 0.0015 + Math.random() * 0.004,
+                speed: satelliteSpeed + Math.random() * satelliteSpeedVariation,
                 mesh: satMesh
             });
         }
@@ -418,7 +443,7 @@ const EarthAndSatellite = () => {
             animationId = requestAnimationFrame(animate);
 
             // Use the Ref for speed control
-            if (!isMouseDown) {
+            if (!isMouseDown && autoRotate) {
                 targetRotationY += rotationSpeedRef.current;
             }
 
@@ -440,18 +465,18 @@ const EarthAndSatellite = () => {
             starGeometry.attributes.color.needsUpdate = true;
 
             // --- DATA BEAM LOGIC ---
-            if (Math.random() < 0.03) { // 3% chance per frame to fire a beam
+            if (Math.random() < beamFrequency) { // chance per frame to fire a beam
                 const randomSat = satellites[Math.floor(Math.random() * satellites.length)];
                 const startPos = new THREE.Vector3();
                 // We need world position. Since satellites are in nested groups, we grab the mesh's world pos
                 randomSat.mesh.getWorldPosition(startPos);
 
-                // Target point on earth surface (roughly towards center, radius 0.6)
-                const endPos = startPos.clone().normalize().multiplyScalar(0.6);
+                // Target point on earth surface (roughly towards center, radius earthSize)
+                const endPos = startPos.clone().normalize().multiplyScalar(earthSize);
 
                 const beamGeom = new THREE.BufferGeometry().setFromPoints([startPos, endPos]);
                 const beamMat = new THREE.LineBasicMaterial({
-                    color: 0x10b981, // Emerald beam
+                    color: beamColor, // Emerald beam
                     transparent: true,
                     opacity: 1,
                     blending: THREE.AdditiveBlending
@@ -464,7 +489,7 @@ const EarthAndSatellite = () => {
             // Animate and remove beams
             for (let i = beamsGroup.children.length - 1; i >= 0; i--) {
                 const beam = beamsGroup.children[i];
-                beam.userData.life -= 0.02; // Fade out speed
+                beam.userData.life -= beamFadeSpeed; // Fade out speed
                 beam.material.opacity = beam.userData.life;
                 if (beam.userData.life <= 0) {
                     beamsGroup.remove(beam);
@@ -514,7 +539,17 @@ const EarthAndSatellite = () => {
     };
 
     return (
-        <div className="relative w-full h-screen bg-black text-white overflow-hidden font-sans selection:bg-cyan-500/30">
+        <div
+            className={`relative w-full h-screen bg-black text-white overflow-hidden font-sans selection:bg-cyan-500/30 ${className}`}
+            style={{
+                position: top || bottom || left || right ? 'absolute' : 'relative',
+                top,
+                bottom,
+                left,
+                right,
+                ...style
+            }}
+        >
 
             {/* 3D Canvas Container */}
             <div ref={mountRef} className="absolute inset-0 z-0 cursor-move" />

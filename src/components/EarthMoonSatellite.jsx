@@ -1,10 +1,33 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Globe, MapPin, Navigation, Maximize, RotateCw, Moon, Zap, Layers, ChevronRight, Activity, Wifi, Clock, ArrowUpRight } from 'lucide-react';
+import { loadThree } from '../lib/threeLoader';
 
-const EarthMoonSatellite = () => {
+const EarthMoonSatellite = ({
+    // Positioning
+    top,
+    bottom,
+    left,
+    right,
+    className = "",
+    style = {},
+
+    // Customization
+    earthSize = 0.6,
+    moonSize = 0.09,
+    moonDistance = 0.9,
+    moonOrbitSpeed = 0.02,
+    satelliteCount = 60,
+    satelliteSpeed = 0.0015,
+    satelliteSpeedVariation = 0.004,
+    satelliteOrbitRadius = 0.72,
+    satelliteOrbitVariation = 0.12,
+    starCount = 8000,
+    earthRotationSpeed = 0.01,
+    autoRotate = true
+}) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
-    const [rotationSpeed, setRotationSpeed] = useState(0.0005);
+    const [rotationSpeed, setRotationSpeed] = useState(earthRotationSpeed / 2);
     const [isDragging, setIsDragging] = useState(false);
     const [coordinates, setCoordinates] = useState({ lat: 0, long: 0 });
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -12,20 +35,24 @@ const EarthMoonSatellite = () => {
 
     // Load Three.js
     useEffect(() => {
-        const loadThree = async () => {
-            if (window.THREE) {
-                initThree();
-                return;
-            }
+        let cancelled = false;
 
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-            script.async = true;
-            script.onload = initThree;
-            document.body.appendChild(script);
+        loadThree()
+            .then(() => {
+                if (!cancelled && window.THREE) {
+                    initThree();
+                }
+            })
+            .catch((error) => {
+                if (!cancelled) {
+                    console.error('Failed to load Three.js:', error);
+                    setLoading(false);
+                }
+            });
+
+        return () => {
+            cancelled = true;
         };
-
-        loadThree();
     }, []);
 
     // Live Clock & Altitude Fluctuation
@@ -117,7 +144,7 @@ const EarthMoonSatellite = () => {
         scene.add(earthGroup);
 
         // Earth Surface
-        const earthGeometry = new THREE.SphereGeometry(0.6, 64, 64);
+        const earthGeometry = new THREE.SphereGeometry(earthSize, 64, 64);
         const earthMaterial = new THREE.MeshPhongMaterial({
             map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg'),
             specularMap: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg'),
@@ -131,7 +158,7 @@ const EarthMoonSatellite = () => {
         earthGroup.add(earth);
 
         // Atmosphere Glow
-        const atmosphereGeometry = new THREE.SphereGeometry(0.62, 64, 64);
+        const atmosphereGeometry = new THREE.SphereGeometry(earthSize + 0.02, 64, 64);
         const atmosphereMaterial = new THREE.MeshPhongMaterial({
             color: 0x06b6d4,
             transparent: true,
@@ -143,7 +170,7 @@ const EarthMoonSatellite = () => {
         scene.add(atmosphere);
 
         // Clouds
-        const cloudGeometry = new THREE.SphereGeometry(0.605, 64, 64);
+        const cloudGeometry = new THREE.SphereGeometry(earthSize + 0.005, 64, 64);
         const cloudMaterial = new THREE.MeshPhongMaterial({
             map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_1024.png'),
             transparent: true,
@@ -156,7 +183,6 @@ const EarthMoonSatellite = () => {
 
         // --- Diverse Satellite System ---
         const satellites = [];
-        const satelliteCount = 60;
 
         // Satellite Materials
         const goldFoilMat = new THREE.MeshPhongMaterial({
@@ -269,7 +295,7 @@ const EarthMoonSatellite = () => {
             satMesh.scale.set(0.15, 0.15, 0.15);
 
             // Close Atom Orbit Distance
-            const distance = 0.72 + Math.random() * 0.12;
+            const distance = satelliteOrbitRadius + Math.random() * satelliteOrbitVariation;
 
             satMesh.position.set(distance, 0, 0);
             satMesh.rotation.z = Math.random() * Math.PI;
@@ -334,7 +360,7 @@ const EarthMoonSatellite = () => {
 
             satellites.push({
                 group: orbitGroup,
-                speed: 0.0015 + Math.random() * 0.004,
+                speed: satelliteSpeed + Math.random() * satelliteSpeedVariation,
                 mesh: satMesh
             });
         }
@@ -344,13 +370,13 @@ const EarthMoonSatellite = () => {
         moonOrbitGroup.rotation.z = 15 * Math.PI / 180;
         scene.add(moonOrbitGroup);
 
-        const moonGeometry = new THREE.SphereGeometry(0.09, 32, 32);
+        const moonGeometry = new THREE.SphereGeometry(moonSize, 32, 32);
         const moonMaterial = new THREE.MeshPhongMaterial({
             map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg'),
             shininess: 5,
         });
         const moon = new THREE.Mesh(moonGeometry, moonMaterial);
-        moon.position.set(0.9, 0, 0);
+        moon.position.set(moonDistance, 0, 0);
         moon.castShadow = true;
         moon.receiveShadow = true;
         moonOrbitGroup.add(moon);
@@ -416,7 +442,7 @@ const EarthMoonSatellite = () => {
         const onDocumentMouseUp = () => {
             isMouseDown = false;
             setIsDragging(false);
-            setRotationSpeed(0.0005);
+            setRotationSpeed(earthRotationSpeed / 2);
         };
 
         const onTouchStart = (event) => {
@@ -452,7 +478,7 @@ const EarthMoonSatellite = () => {
         let animationId;
         const animate = () => {
             animationId = requestAnimationFrame(animate);
-            if (!isMouseDown) targetRotationY += 0.01;
+            if (!isMouseDown && autoRotate) targetRotationY += earthRotationSpeed;
 
             earthGroup.rotation.y += (targetRotationY - earthGroup.rotation.y) * 0.05;
             earthGroup.rotation.x += (targetRotationX - earthGroup.rotation.x) * 0.05;
@@ -468,7 +494,7 @@ const EarthMoonSatellite = () => {
                 sat.mesh.rotation.x += 0.005;
             });
 
-            moonOrbitGroup.rotation.y += 0.02;
+            moonOrbitGroup.rotation.y += moonOrbitSpeed;
             moon.rotation.y += 0.01;
 
             const time = Date.now() * 0.001;
@@ -519,7 +545,17 @@ const EarthMoonSatellite = () => {
     };
 
     return (
-        <div className="relative w-full h-screen bg-black text-white overflow-hidden font-sans selection:bg-cyan-500/30">
+        <div
+            className={`relative w-full h-screen bg-black text-white overflow-hidden font-sans selection:bg-cyan-500/30 ${className}`}
+            style={{
+                position: top || bottom || left || right ? 'absolute' : 'relative',
+                top,
+                bottom,
+                left,
+                right,
+                ...style
+            }}
+        >
 
             {/* 3D Canvas Container */}
             <div ref={mountRef} className="absolute inset-0 z-0 cursor-move" />

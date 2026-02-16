@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // Self-contained Three.js loader
 const loadThree = () => {
@@ -16,7 +16,7 @@ const loadThree = () => {
     });
 };
 
-const EarthAndMoon = ({
+const Jupiter = ({
     // Positioning
     top,
     bottom,
@@ -26,19 +26,19 @@ const EarthAndMoon = ({
     style = {},
 
     // Customization
-    earthSize = 0.6,
-    moonSize = 0.09,
-    moonDistance = 1.0,
-    moonOrbitSpeed = 0.02,
-    earthRotationSpeed = 0.001,
-    cloudOpacity = 0.4,
-    atmosphereOpacity = 0.15,
+    jupiterSize = 0.8,
+    jupiterRotationSpeed = 0.002,
+    // Ring properties - faint and thin compared to Saturn
+    ringInnerRadius = 1.6,
+    ringOuterRadius = 1.8,
+    ringParticleCount = 40000, // Fewer particles than Saturn
+    ringRotationSpeed = 0.005,
     starCount = 8000,
     autoRotate = true
 }) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
-    const [rotationSpeed, setRotationSpeed] = useState(earthRotationSpeed);
+    const [rotationSpeed, setRotationSpeed] = useState(jupiterRotationSpeed);
     const [isDragging, setIsDragging] = useState(false);
     const [coordinates, setCoordinates] = useState({ lat: 0, long: 0 });
 
@@ -74,7 +74,7 @@ const EarthAndMoon = ({
 
         // Camera
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 8000);
-        camera.position.z = 2.8;
+        camera.position.z = 3.2;
 
         // Renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -103,7 +103,7 @@ const EarthAndMoon = ({
         const backgroundSphere = new THREE.Mesh(bgGeometry, bgMaterial);
         scene.add(backgroundSphere);
 
-        // --- 2. GALAXY SPHERE (Nebula particles - Earth tones: Blue/Green/White) ---
+        // --- 2. GALAXY SPHERE (Nebula particles - Cream/Tan/Orange tones for Jupiter) ---
         const galaxyCount = 20000;
         const galaxyGeometry = new THREE.BufferGeometry();
         const galaxyMaterial = new THREE.PointsMaterial({
@@ -132,10 +132,10 @@ const EarthAndMoon = ({
             const col = new THREE.Color();
             const rand = Math.random();
 
-            // Earth Theme: Blues, Greens, and White
-            if (rand > 0.6) col.setHex(0x1e90ff); // Dodger Blue
-            else if (rand > 0.3) col.setHex(0x3cb371); // Medium Sea Green
-            else col.setHex(0xf0f8ff); // Alice Blue
+            // Jupiter Theme: Wheat, Burlywood, and Peru colors
+            if (rand > 0.6) col.setHex(0xf5deb3); // Wheat
+            else if (rand > 0.3) col.setHex(0xdeb887); // Burlywood
+            else col.setHex(0xcd853f); // Peru
 
             const intensity = 0.3 + Math.random() * 0.7;
             col.multiplyScalar(intensity);
@@ -192,64 +192,80 @@ const EarthAndMoon = ({
         const stars = new THREE.Points(starGeometry, starMaterial);
         scene.add(stars);
 
-        // --- Earth Group ---
-        const earthGroup = new THREE.Group();
-        earthGroup.rotation.z = 23.4 * Math.PI / 180;
-        scene.add(earthGroup);
+        // --- Jupiter Group ---
+        const jupiterGroup = new THREE.Group();
+        jupiterGroup.rotation.z = 3.1 * Math.PI / 180;
+        scene.add(jupiterGroup);
 
-        // Earth Surface
-        const earthGeometry = new THREE.SphereGeometry(earthSize, 64, 64);
-        const earthMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg'),
-            specularMap: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg'),
-            normalMap: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_normal_2048.jpg'),
-            specular: new THREE.Color(0x333333),
-            shininess: 15
+        // Jupiter Surface
+        const jupiterGeometry = new THREE.SphereGeometry(jupiterSize, 64, 64);
+        const jupiterMaterial = new THREE.MeshPhongMaterial({
+            map: textureLoader.load('jupiter.jpg'),
+            shininess: 10
         });
-        const earth = new THREE.Mesh(earthGeometry, earthMaterial);
-        earth.castShadow = true;
-        earth.receiveShadow = true;
-        earthGroup.add(earth);
+        const jupiter = new THREE.Mesh(jupiterGeometry, jupiterMaterial);
+        jupiter.castShadow = true;
+        jupiter.receiveShadow = true;
+        jupiterGroup.add(jupiter);
 
-        // Atmosphere Glow
-        const atmosphereGeometry = new THREE.SphereGeometry(earthSize + 0.02, 64, 64);
-        const atmosphereMaterial = new THREE.MeshPhongMaterial({
-            color: 0x06b6d4,
+        // --- 4. Jupiter's Ring System (Thin Particle Ring) ---
+        const ringGeometry = new THREE.BufferGeometry();
+        const ringPositions = [];
+        const ringColors = [];
+        const ringSizes = [];
+
+        for (let i = 0; i < ringParticleCount; i++) {
+            const radius = ringInnerRadius + Math.random() * (ringOuterRadius - ringInnerRadius);
+            const angle = Math.random() * Math.PI * 2;
+
+            // Generate flat on XZ plane relative to the group
+            const x = Math.cos(angle) * radius;
+            const z = Math.sin(angle) * radius;
+            const y = (Math.random() - 0.5) * 0.02; // Very slight vertical spread
+
+            ringPositions.push(x, y, z);
+
+            // Jupiter's rings are dusty/dark, mostly reddish/grey
+            const color = new THREE.Color();
+            if (Math.random() > 0.5) {
+                color.setHex(0x8a7e72); // Dusty grey-brown
+            } else {
+                color.setHex(0x5e544a); // Darker dust
+            }
+
+            // Add some transparency variation simulated by darkening color
+            const opacity = 0.3 + Math.random() * 0.4;
+            color.multiplyScalar(opacity);
+
+            ringColors.push(color.r, color.g, color.b);
+
+            // Very small particles
+            ringSizes.push(0.002 + Math.random() * 0.003);
+        }
+
+        ringGeometry.setAttribute('position', new THREE.Float32BufferAttribute(ringPositions, 3));
+        ringGeometry.setAttribute('color', new THREE.Float32BufferAttribute(ringColors, 3));
+        ringGeometry.setAttribute('size', new THREE.Float32BufferAttribute(ringSizes, 1));
+
+        const ringMaterial = new THREE.PointsMaterial({
+            size: 0.003,
+            vertexColors: true,
             transparent: true,
-            opacity: atmosphereOpacity,
-            side: THREE.BackSide,
+            opacity: 0.4, // Faint overall
             blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            sizeAttenuation: true
         });
-        const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
-        scene.add(atmosphere);
 
-        // Clouds
-        const cloudGeometry = new THREE.SphereGeometry(earthSize + 0.005, 64, 64);
-        const cloudMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_1024.png'),
-            transparent: true,
-            opacity: cloudOpacity,
-            blending: THREE.AdditiveBlending,
-            side: THREE.DoubleSide
-        });
-        const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
-        earthGroup.add(clouds);
-
-        // --- Moon Setup ---
-        const moonOrbitGroup = new THREE.Group();
-        moonOrbitGroup.rotation.z = 15 * Math.PI / 180;
-        scene.add(moonOrbitGroup);
-
-        const moonGeometry = new THREE.SphereGeometry(moonSize, 32, 32);
-        const moonMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg'),
-            shininess: 5,
-        });
-        const moon = new THREE.Mesh(moonGeometry, moonMaterial);
-        moon.position.set(moonDistance, 0, 0);
-        moon.castShadow = true;
-        moon.receiveShadow = true;
-        moonOrbitGroup.add(moon);
+        const jupiterRing = new THREE.Points(ringGeometry, ringMaterial);
+        // Rotate to be flat (perpendicular to Y axis) in the group's local space
+        // Since points are XZ, we might need to orient them if the group handles axial tilt.
+        // Jupiter group is tilted Z=3.1deg. The points are XZ, so they form a ring around Y.
+        // However, standard rings are usually equatorial.
+        // Let's assume standard XZ plane is equatorial for this group.
+        // But usually geometry needs to be rotated X=90 to be flat if logic assumes XY.
+        // Here we built on XZ, so no extra rotation needed relative to planet equator.
+        jupiterGroup.add(jupiterRing);
 
 
         // --- Lighting ---
@@ -263,7 +279,7 @@ const EarthAndMoon = ({
         sunLight.shadow.mapSize.height = 1024;
         scene.add(sunLight);
 
-        const rimLight = new THREE.DirectionalLight(0x06b6d4, 0.8);
+        const rimLight = new THREE.DirectionalLight(0xc88b3a, 0.8);
         rimLight.position.set(-5, 1, -5);
         scene.add(rimLight);
 
@@ -312,7 +328,7 @@ const EarthAndMoon = ({
         const onDocumentMouseUp = () => {
             isMouseDown = false;
             setIsDragging(false);
-            setRotationSpeed(earthRotationSpeed / 2);
+            setRotationSpeed(jupiterRotationSpeed / 2);
         };
 
         const onTouchStart = (event) => {
@@ -348,27 +364,26 @@ const EarthAndMoon = ({
         let animationId;
         const animate = () => {
             animationId = requestAnimationFrame(animate);
-            if (!isMouseDown && autoRotate) targetRotationY += earthRotationSpeed;
+            if (!isMouseDown && autoRotate) targetRotationY += jupiterRotationSpeed;
 
-            earthGroup.rotation.y += (targetRotationY - earthGroup.rotation.y) * 0.05;
-            earthGroup.rotation.x += (targetRotationX - earthGroup.rotation.x) * 0.05;
-            clouds.rotation.y += 0.0004;
+            jupiterGroup.rotation.y += (targetRotationY - jupiterGroup.rotation.y) * 0.05;
+            jupiterGroup.rotation.x += (targetRotationX - jupiterGroup.rotation.x) * 0.05;
+
+            // Rotate Ring
+            jupiterRing.rotation.y -= ringRotationSpeed;
 
             // Rotate Starfields and Background
-            stars.rotation.y -= 0.002;
-            backgroundSphere.rotation.y -= 0.0004;
-
-            moonOrbitGroup.rotation.y += moonOrbitSpeed;
-            moon.rotation.y += 0.01;
+            stars.rotation.y -= 0.0008;
+            backgroundSphere.rotation.y -= 0.0008;
 
             const time = Date.now() * 0.001;
             const colors = starGeometry.attributes.color.array;
             for (let i = 0; i < starCount; i++) {
                 const { speed, phase } = starBlinkParams[i];
                 const brightness = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(time * speed + phase));
-                colors[i * 3] = brightness;     // R
-                colors[i * 3 + 1] = brightness; // G
-                colors[i * 3 + 2] = brightness; // B
+                colors[i * 3] = brightness;
+                colors[i * 3 + 1] = brightness;
+                colors[i * 3 + 2] = brightness;
             }
             starGeometry.attributes.color.needsUpdate = true;
 
@@ -398,23 +413,23 @@ const EarthAndMoon = ({
             if (mountRef.current && renderer.domElement) {
                 mountRef.current.removeChild(renderer.domElement);
             }
-            earthGeometry.dispose();
-            earthMaterial.dispose();
-            moonGeometry.dispose();
-            moonMaterial.dispose();
+            jupiterGeometry.dispose();
+            jupiterMaterial.dispose();
             starGeometry.dispose();
             starMaterial.dispose();
             bgGeometry.dispose();
             bgMaterial.dispose();
             galaxyGeometry.dispose();
             galaxyMaterial.dispose();
+            ringGeometry.dispose();
+            ringMaterial.dispose();
             textureLoader.dispose();
         };
     };
 
     return (
         <div
-            className={`relative w-full h-screen bg-black text-white overflow-hidden font-sans selection:bg-cyan-500/30 ${className}`}
+            className={`relative w-full h-screen bg-black text-white overflow-hidden font-sans selection:bg-orange-500/30 ${className}`}
             style={{
                 position: top || bottom || left || right ? 'absolute' : 'relative',
                 top,
@@ -428,9 +443,9 @@ const EarthAndMoon = ({
             {/* 3D Canvas Container */}
             <div ref={mountRef} className="absolute inset-0 z-0 cursor-move" />
 
-            {/* Background Ambience - Earthy Blues/Teals */}
-            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-900/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-70"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-900/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-70"></div>
+            {/* Background Ambience - Warm Orange/Brown tones for Jupiter */}
+            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-orange-900/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-70"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-amber-900/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen opacity-70"></div>
 
             {/* Grid Overlay - subtle texture */}
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none"></div>
@@ -441,18 +456,16 @@ const EarthAndMoon = ({
                     <div className="flex flex-col items-center gap-6">
                         <div className="relative">
                             <div className="w-16 h-16 border-2 border-slate-800 rounded-full"></div>
-                            <div className="absolute top-0 left-0 w-16 h-16 border-2 border-t-cyan-500 rounded-full animate-spin"></div>
-                            <div className="absolute top-2 left-2 w-12 h-12 bg-cyan-500/10 rounded-full animate-pulse"></div>
+                            <div className="absolute top-0 left-0 w-16 h-16 border-2 border-t-orange-500 rounded-full animate-spin"></div>
+                            <div className="absolute top-2 left-2 w-12 h-12 bg-orange-500/10 rounded-full animate-pulse"></div>
                         </div>
-                        <p className="text-cyan-500 font-mono tracking-[0.2em] text-xs uppercase animate-pulse">Initializing Telemetry...</p>
+                        <p className="text-orange-500 font-mono tracking-[0.2em] text-xs uppercase animate-pulse">Initializing Telemetry...</p>
                     </div>
                 </div>
             )}
-
-            {/* All Overlay UI Elements have been removed as requested */}
 
         </div>
     );
 };
 
-export default EarthAndMoon;
+export default Jupiter;
