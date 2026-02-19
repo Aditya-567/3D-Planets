@@ -3,7 +3,8 @@
   "version": "0.0.6",
   "type": "module",
   "files": [
-    "dist"
+    "dist",
+    "public"
   ],
   "main": "./dist/index.umd.cjs",
   "module": "./dist/index.js",
@@ -43,7 +44,16 @@
     "planets",
     "react-three",
     "webgl",
-    "3d-visualization"
+    "3d-visualization",
+    "mercury",
+    "venus",
+    "earth",
+    "mars",
+    "jupiter",
+    "saturn",
+    "uranus",
+    "neptune",
+    "pluto"
   ],
   "dependencies": {
     "@babel/standalone": "^7.29.1",

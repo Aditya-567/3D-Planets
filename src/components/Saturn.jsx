@@ -1,20 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-
-// Self-contained Three.js loader
-const loadThree = () => {
-    return new Promise((resolve, reject) => {
-        if (window.THREE) {
-            resolve();
-            return;
-        }
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-        script.async = true;
-        script.onload = () => resolve();
-        script.onerror = (e) => reject(e);
-        document.head.appendChild(script);
-    });
-};
+import * as THREE from 'three';
 
 const Saturn = ({
     // Positioning
@@ -36,7 +21,8 @@ const Saturn = ({
     tilt = 26.7, // Axial tilt in degrees
     ringRotation = 0, // Initial ring rotation in degrees
     starCount = 8000,
-    autoRotate = true
+    autoRotate = true,
+    textureBaseUrl = 'https://cdn.jsdelivr.net/npm/3d-solar-system-globe/public'
 }) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
@@ -44,31 +30,13 @@ const Saturn = ({
     const [isDragging, setIsDragging] = useState(false);
     const [coordinates, setCoordinates] = useState({ lat: 0, long: 0 });
 
-    // Load Three.js
+    // Initialize Three.js
     useEffect(() => {
-        let cancelled = false;
-
-        loadThree()
-            .then(() => {
-                if (!cancelled && window.THREE) {
-                    initThree();
-                }
-            })
-            .catch((error) => {
-                if (!cancelled) {
-                    console.error('Failed to load Three.js:', error);
-                    setLoading(false);
-                }
-            });
-
-        return () => {
-            cancelled = true;
-        };
+        const cleanup = initThree();
+        return cleanup;
     }, []);
 
     const initThree = () => {
-        const THREE = window.THREE;
-
         // Calculate outer radius derived from width
         const ringOuterRadius = ringInnerRadius + ringWidth;
 
@@ -95,10 +63,11 @@ const Saturn = ({
         }
 
         const textureLoader = new THREE.TextureLoader();
+        textureLoader.crossOrigin = 'anonymous';
 
         // --- 1. BACKGROUND SPHERE (8k Stars) ---
         const bgGeometry = new THREE.SphereGeometry(2500, 64, 64);
-        const bgTexture = textureLoader.load('8k_stars.png');
+        const bgTexture = textureLoader.load(`${textureBaseUrl}/8k_stars.png`);
         const bgMaterial = new THREE.MeshBasicMaterial({
             map: bgTexture,
             side: THREE.BackSide,
@@ -206,7 +175,7 @@ const Saturn = ({
         // Saturn Surface
         const saturnGeometry = new THREE.SphereGeometry(saturnSize, 64, 64);
         const saturnMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('saturnmap.jpg'),
+            map: textureLoader.load(`${textureBaseUrl}/saturnmap.jpg`),
             shininess: 10
         });
         const saturn = new THREE.Mesh(saturnGeometry, saturnMaterial);
@@ -217,7 +186,7 @@ const Saturn = ({
         // Saturn Rings - Base layer with texture
         const ringGeometry = new THREE.RingGeometry(ringInnerRadius, ringOuterRadius, 128);
         const ringMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('saturn_ring.png'),
+            map: textureLoader.load(`${textureBaseUrl}/saturn_ring.png`),
             transparent: true,
             opacity: 0.9,
             side: THREE.DoubleSide,
@@ -484,8 +453,8 @@ const Saturn = ({
             bgMaterial.dispose();
             galaxyGeometry.dispose();
             galaxyMaterial.dispose();
-            textureLoader.dispose();
         };
+
     };
 
     return (
