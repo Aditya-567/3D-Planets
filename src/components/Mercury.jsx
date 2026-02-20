@@ -165,12 +165,25 @@ const Mercury = ({
         const mercuryGeometry = new THREE.SphereGeometry(mercurySize, 64, 64);
         const mercuryMaterial = new THREE.MeshPhongMaterial({
             map: textureLoader.load(`${textureBaseUrl}/mercury.jpg`),
-            shininess: 5
+            specular: new THREE.Color(0x222222),
+            shininess: 8
         });
         const mercury = new THREE.Mesh(mercuryGeometry, mercuryMaterial);
         mercury.castShadow = true;
         mercury.receiveShadow = true;
         mercuryGroup.add(mercury);
+
+        // Upper Exosphere (Mercury has only a very thin exosphere)
+        const atmosphereGeometry = new THREE.SphereGeometry(mercurySize + 0.015, 64, 64);
+        const atmosphereMaterial = new THREE.MeshPhongMaterial({
+            color: 0x8a7560,
+            transparent: true,
+            opacity: 0.05,
+            side: THREE.BackSide,
+            blending: THREE.AdditiveBlending,
+        });
+        const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+        scene.add(atmosphere);
 
         // --- Lighting ---
         const ambientLight = new THREE.AmbientLight(0x111111);
@@ -322,7 +335,8 @@ const Mercury = ({
             bgMaterial.dispose();
             galaxyGeometry.dispose();
             galaxyMaterial.dispose();
-            textureLoader.dispose();
+            atmosphereGeometry.dispose();
+            atmosphereMaterial.dispose();
         };
     };
 

@@ -523,7 +523,6 @@ const EarthMoonSatellite = ({
             moonMaterial.dispose();
             starGeometry.dispose();
             starMaterial.dispose();
-            textureLoader.dispose();
         };
     };
 

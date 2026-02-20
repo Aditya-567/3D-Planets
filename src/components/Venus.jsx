@@ -165,8 +165,9 @@ const Venus = ({
         // Venus Surface
         const venusGeometry = new THREE.SphereGeometry(venusSize, 64, 64);
         const venusMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load(`${textureBaseUrl}/venusmap.jpg`), // Ensure this matches your local file name
-            shininess: 10
+            map: textureLoader.load(`${textureBaseUrl}/venusmap.jpg`),
+            specular: new THREE.Color(0x332200),
+            shininess: 15
         });
         const venus = new THREE.Mesh(venusGeometry, venusMaterial);
         venus.castShadow = true;
@@ -335,7 +336,8 @@ const Venus = ({
             bgMaterial.dispose();
             galaxyGeometry.dispose();
             galaxyMaterial.dispose();
-            textureLoader.dispose();
+            atmosphereGeometry.dispose();
+            atmosphereMaterial.dispose();
         };
     };
 

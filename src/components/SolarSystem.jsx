@@ -346,8 +346,7 @@ const SolarSystem = ({
             size: 0.19,
             vertexColors: true,
             transparent: true,
-            opacity: 0.6,
-            roughness: 0.9
+            opacity: 0.6
         });
         const kuiperVertices = [];
         const kuiperColors = [];
@@ -379,10 +378,10 @@ const SolarSystem = ({
             { name: "Uranus", textureImg: "uranus.jpg", size: 1.4, distance: 64, speed: 0.004, orbitColor: 0x66CCFF, inclination: 0.8, node: 74, ecc: 0.05, hasRing: true, ringTexture: "uranus_ring.png", moonCount: 5 },
             { name: "Neptune", textureImg: "neptune.jpg", size: 1.2, distance: 74, speed: 0.003, orbitColor: 0x3333AA, inclination: 1.8, node: 131, ecc: 0.08, moonCount: 3 },
             { name: "Pluto", textureImg: "plutomap.jpg", size: 0.8, distance: 85, speed: 0.002, orbitColor: 0x9ca6b7, inclination: 17.2, node: 110, ecc: 0.3, moonCount: 1 },
-            { name: "Ceres", textureImg: "ceresmap.jpg", size: 0.7, distance: 26, speed: 0.012, orbitColor: 0x888888, inclination: 10.6, node: 80, ecc: 0.08, moonCount: 0 },
-            { name: "Haumea", textureImg: "haumeamap.jpg", size: 0.6, distance: 92, speed: 0.0018, orbitColor: 0xaaaaaa, inclination: 28.0, node: 122, ecc: 0.19, moonCount: 2 },
-            { name: "Makemake", textureImg: "makemakemap.jpg", size: 0.6, distance: 98, speed: 0.0016, orbitColor: 0xaaaaaa, inclination: 29.0, node: 79, ecc: 0.16, moonCount: 1 },
-            { name: "Eris", textureImg: "erismap.jpg", size: 0.62, distance: 110, speed: 0.0012, orbitColor: 0xaaaaaa, inclination: 44.0, node: 135, ecc: 0.44, moonCount: 1 }
+            { name: "Ceres", textureImg: "mercury.jpg", size: 0.7, distance: 26, speed: 0.012, orbitColor: 0x888888, inclination: 10.6, node: 80, ecc: 0.08, moonCount: 0 },
+            { name: "Haumea", textureImg: "plutomap.jpg", size: 0.6, distance: 92, speed: 0.0018, orbitColor: 0xaaaaaa, inclination: 28.0, node: 122, ecc: 0.19, moonCount: 2 },
+            { name: "Makemake", textureImg: "mercury.jpg", size: 0.6, distance: 98, speed: 0.0016, orbitColor: 0xaaaaaa, inclination: 29.0, node: 79, ecc: 0.16, moonCount: 1 },
+            { name: "Eris", textureImg: "plutomap.jpg", size: 0.62, distance: 110, speed: 0.0012, orbitColor: 0xaaaaaa, inclination: 44.0, node: 135, ecc: 0.44, moonCount: 1 }
         ];
 
         planetsData.forEach(data => {
@@ -436,8 +435,8 @@ const SolarSystem = ({
             if (data.isEarth) {
                 material = new THREE.MeshPhongMaterial({
                     map: textureLoader.load(`${textureBaseUrl}/earth_daymap.jpg`),
-                    specularMap: textureLoader.load(`${textureBaseUrl}/earth_specular.jpg`),
-                    normalMap: textureLoader.load(`${textureBaseUrl}/earth_normal.jpg`),
+                    specularMap: textureLoader.load(`${textureBaseUrl}/earth_specularmap.jpg`),
+                    normalMap: textureLoader.load(`${textureBaseUrl}/earth_normalmap.jpg`),
                     specular: new THREE.Color(0x333333),
                     shininess: 15
                 });

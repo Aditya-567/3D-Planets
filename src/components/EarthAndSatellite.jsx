@@ -517,7 +517,6 @@ const EarthAndSatellite = ({
             earthMaterial.dispose();
             starGeometry.dispose();
             starMaterial.dispose();
-            textureLoader.dispose();
         };
     };
 

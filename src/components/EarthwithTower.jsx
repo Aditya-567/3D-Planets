@@ -489,7 +489,6 @@ const EarthWithTower = ({
             earthMaterial.dispose();
             starGeometry.dispose();
             starMaterial.dispose();
-            textureLoader.dispose();
         };
     };
 

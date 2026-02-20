@@ -170,12 +170,25 @@ const Jupiter = ({
         const jupiterGeometry = new THREE.SphereGeometry(jupiterSize, 64, 64);
         const jupiterMaterial = new THREE.MeshPhongMaterial({
             map: textureLoader.load(`${textureBaseUrl}/jupiter.jpg`),
-            shininess: 10
+            specular: new THREE.Color(0x332200),
+            shininess: 18
         });
         const jupiter = new THREE.Mesh(jupiterGeometry, jupiterMaterial);
         jupiter.castShadow = true;
         jupiter.receiveShadow = true;
         jupiterGroup.add(jupiter);
+
+        // Jupiter's Upper Atmosphere Glow
+        const atmosphereGeometry = new THREE.SphereGeometry(jupiterSize + 0.025, 64, 64);
+        const atmosphereMaterial = new THREE.MeshPhongMaterial({
+            color: 0xff7722,
+            transparent: true,
+            opacity: 0.12,
+            side: THREE.BackSide,
+            blending: THREE.AdditiveBlending,
+        });
+        const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+        scene.add(atmosphere);
 
         // --- 4. Jupiter's Ring System (Thin Particle Ring) ---
         const ringGeometry = new THREE.BufferGeometry();
@@ -391,9 +404,8 @@ const Jupiter = ({
             galaxyGeometry.dispose();
             galaxyMaterial.dispose();
             ringGeometry.dispose();
-            ringMaterial.dispose();
-            textureLoader.dispose();
-        };
+            ringMaterial.dispose();            atmosphereGeometry.dispose();
+            atmosphereMaterial.dispose();        };
     };
 
     return (

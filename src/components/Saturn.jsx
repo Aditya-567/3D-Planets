@@ -176,12 +176,25 @@ const Saturn = ({
         const saturnGeometry = new THREE.SphereGeometry(saturnSize, 64, 64);
         const saturnMaterial = new THREE.MeshPhongMaterial({
             map: textureLoader.load(`${textureBaseUrl}/saturnmap.jpg`),
-            shininess: 10
+            specular: new THREE.Color(0x332200),
+            shininess: 15
         });
         const saturn = new THREE.Mesh(saturnGeometry, saturnMaterial);
         saturn.castShadow = true;
         saturn.receiveShadow = true;
         saturnGroup.add(saturn);
+
+        // Saturn's Upper Atmosphere Glow
+        const atmosphereGeometry = new THREE.SphereGeometry(saturnSize + 0.022, 64, 64);
+        const atmosphereMaterial = new THREE.MeshPhongMaterial({
+            color: 0xffaa44,
+            transparent: true,
+            opacity: 0.12,
+            side: THREE.BackSide,
+            blending: THREE.AdditiveBlending,
+        });
+        const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+        scene.add(atmosphere);
 
         // Saturn Rings - Base layer with texture
         const ringGeometry = new THREE.RingGeometry(ringInnerRadius, ringOuterRadius, 128);

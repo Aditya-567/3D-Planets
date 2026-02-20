@@ -165,12 +165,25 @@ const Pluto = ({
         const plutoGeometry = new THREE.SphereGeometry(plutoSize, 64, 64);
         const plutoMaterial = new THREE.MeshPhongMaterial({
             map: textureLoader.load(`${textureBaseUrl}/plutomap.jpg`),
-            shininess: 5
+            specular: new THREE.Color(0x111122),
+            shininess: 8
         });
         const pluto = new THREE.Mesh(plutoGeometry, plutoMaterial);
         pluto.castShadow = true;
         pluto.receiveShadow = true;
         plutoGroup.add(pluto);
+
+        // Pluto's Thin Nitrogen Atmosphere Haze
+        const atmosphereGeometry = new THREE.SphereGeometry(plutoSize + 0.018, 64, 64);
+        const atmosphereMaterial = new THREE.MeshPhongMaterial({
+            color: 0x8899cc,
+            transparent: true,
+            opacity: 0.08,
+            side: THREE.BackSide,
+            blending: THREE.AdditiveBlending,
+        });
+        const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+        scene.add(atmosphere);
 
         // --- Moons Setup (Charon + 4 smaller moons) ---
         const moonsGroup = new THREE.Group();
@@ -449,7 +462,8 @@ const Pluto = ({
             bgMaterial.dispose();
             galaxyGeometry.dispose(); // Dispose galaxy
             galaxyMaterial.dispose();
-            textureLoader.dispose();
+            atmosphereGeometry.dispose();
+            atmosphereMaterial.dispose();
         };
     };
 

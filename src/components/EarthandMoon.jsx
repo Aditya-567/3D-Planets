@@ -377,7 +377,8 @@ const EarthAndMoon = ({
             bgMaterial.dispose();
             galaxyGeometry.dispose();
             galaxyMaterial.dispose();
-            textureLoader.dispose();
+            atmosphereGeometry.dispose();
+            atmosphereMaterial.dispose();
         };
     };
 

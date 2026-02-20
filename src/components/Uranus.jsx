@@ -177,12 +177,25 @@ const Uranus = ({
         const uranusGeometry = new THREE.SphereGeometry(uranusSize, 64, 64);
         const uranusMaterial = new THREE.MeshPhongMaterial({
             map: textureLoader.load(`${textureBaseUrl}/uranus.jpg`),
-            shininess: 10
+            specular: new THREE.Color(0x003333),
+            shininess: 18
         });
         const uranus = new THREE.Mesh(uranusGeometry, uranusMaterial);
         uranus.castShadow = true;
         uranus.receiveShadow = true;
         uranusGroup.add(uranus);
+
+        // Uranus Upper Atmosphere Glow
+        const atmosphereGeometry = new THREE.SphereGeometry(uranusSize + 0.020, 64, 64);
+        const atmosphereMaterial = new THREE.MeshPhongMaterial({
+            color: 0x44ddcc,
+            transparent: true,
+            opacity: 0.15,
+            side: THREE.BackSide,
+            blending: THREE.AdditiveBlending,
+        });
+        const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+        scene.add(atmosphere);
 
         // Uranus Rings - Base Mesh
         // Increased segments to 128 for smoother shadow edges
@@ -428,7 +441,8 @@ const Uranus = ({
             bgMaterial.dispose();
             galaxyGeometry.dispose();
             galaxyMaterial.dispose();
-            textureLoader.dispose();
+            atmosphereGeometry.dispose();
+            atmosphereMaterial.dispose();
         };
     };
 

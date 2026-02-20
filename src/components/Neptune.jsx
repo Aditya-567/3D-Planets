@@ -172,7 +172,8 @@ const Neptune = ({
         const neptuneGeometry = new THREE.SphereGeometry(neptuneSize, 64, 64);
         const neptuneMaterial = new THREE.MeshPhongMaterial({
             map: textureLoader.load(`${textureBaseUrl}/neptune.jpg`),
-            shininess: 10
+            specular: new THREE.Color(0x001133),
+            shininess: 18
         });
         const neptune = new THREE.Mesh(neptuneGeometry, neptuneMaterial);
         neptune.castShadow = true;
@@ -388,7 +389,8 @@ const Neptune = ({
             bgMaterial.dispose();
             galaxyGeometry.dispose();
             galaxyMaterial.dispose();
-            textureLoader.dispose();
+            atmosphereGeometry.dispose();
+            atmosphereMaterial.dispose();
         };
     };
 

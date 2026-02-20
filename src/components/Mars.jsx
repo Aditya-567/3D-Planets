@@ -174,12 +174,25 @@ const Mars = ({
         const marsGeometry = new THREE.SphereGeometry(marsSize, 64, 64);
         const marsMaterial = new THREE.MeshPhongMaterial({
             map: textureLoader.load(`${textureBaseUrl}/marsmap.jpg`),
-            shininess: 5
+            specular: new THREE.Color(0x331100),
+            shininess: 8
         });
         const mars = new THREE.Mesh(marsGeometry, marsMaterial);
         mars.castShadow = true;
         mars.receiveShadow = true;
         marsGroup.add(mars);
+
+        // Thin Martian Atmosphere
+        const atmosphereGeometry = new THREE.SphereGeometry(marsSize + 0.018, 64, 64);
+        const atmosphereMaterial = new THREE.MeshPhongMaterial({
+            color: 0xcc4411,
+            transparent: true,
+            opacity: 0.10,
+            side: THREE.BackSide,
+            blending: THREE.AdditiveBlending,
+        });
+        const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+        scene.add(atmosphere);
 
         // --- Moons (Phobos & Deimos) ---
         const moonsGroup = new THREE.Group();
@@ -470,7 +483,8 @@ const Mars = ({
             bgMaterial.dispose();
             galaxyGeometry.dispose();
             galaxyMaterial.dispose();
-            textureLoader.dispose();
+            atmosphereGeometry.dispose();
+            atmosphereMaterial.dispose();
         };
     };
 
