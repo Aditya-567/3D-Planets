@@ -1,6 +1,6 @@
-import { Activity, Clock, Globe, Layers, Navigation } from 'lucide-react';
+import { Activity, Navigation } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { loadThree } from '../lib/threeLoader';
+import * as THREE from 'three';
 
 const EarthWithTower = ({
     // Positioning
@@ -30,25 +30,10 @@ const EarthWithTower = ({
     const [coordinates, setCoordinates] = useState({ lat: 0, long: 0 });
     const [currentTime, setCurrentTime] = useState(new Date());
 
+    // Initialize Three.js
     useEffect(() => {
-        let cancelled = false;
-
-        loadThree()
-            .then(() => {
-                if (!cancelled && window.THREE) {
-                    initThree();
-                }
-            })
-            .catch((error) => {
-                if (!cancelled) {
-                    console.error('Failed to load Three.js:', error);
-                    setLoading(false);
-                }
-            });
-
-        return () => {
-            cancelled = true;
-        };
+        const cleanup = initThree();
+        return cleanup;
     }, []);
 
     useEffect(() => {
@@ -57,8 +42,6 @@ const EarthWithTower = ({
     }, []);
 
     const initThree = () => {
-        const THREE = window.THREE;
-
         // Scene Setup
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000); // Pure Black
@@ -81,6 +64,7 @@ const EarthWithTower = ({
         }
 
         const textureLoader = new THREE.TextureLoader();
+        textureLoader.crossOrigin = 'anonymous';
 
         // --- Starfield ---
         const starGeometry = new THREE.BufferGeometry();

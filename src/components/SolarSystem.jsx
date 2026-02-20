@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Globe, Layers, Activity, Clock, Sun as SunIcon } from 'lucide-react';
-import { loadThree } from '../lib/threeLoader';
+import { Clock, Globe, Layers, Sun as SunIcon } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
 
 const SolarSystem = ({
     // Positioning
@@ -20,7 +20,8 @@ const SolarSystem = ({
     showOrbits = true,
     showTrails = true,
     initialDistance = 280,
-    autoRotate = true
+    autoRotate = true,
+    textureBaseUrl = 'https://cdn.jsdelivr.net/npm/3d-solar-system-globe/dist'
 }) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
@@ -39,32 +40,10 @@ const SolarSystem = ({
     const [currentTime, setCurrentTime] = useState(new Date());
     const [activePlanet, setActivePlanet] = useState("Solar System");
 
-    // Load Three.js dynamically
+    // Initialize Three.js
     useEffect(() => {
-        let cancelled = false;
-
-        loadThree()
-            .then(() => {
-                if (!cancelled && window.THREE) {
-                    initThree();
-                }
-            })
-            .catch((error) => {
-                if (!cancelled) {
-                    console.error('Failed to load Three.js:', error);
-                    setLoading(false);
-                }
-            });
-
-        return () => {
-            cancelled = true;
-            if (frameIdRef.current) {
-                cancelAnimationFrame(frameIdRef.current);
-            }
-            if (rendererRef.current && mountRef.current) {
-                mountRef.current.innerHTML = '';
-            }
-        };
+        const cleanup = initThree();
+        return cleanup;
     }, []);
 
     // Live Clock
@@ -74,9 +53,6 @@ const SolarSystem = ({
     }, []);
 
     const initThree = () => {
-        if (!window.THREE) return;
-        const THREE = window.THREE;
-
         // --- HELPER FUNCTIONS ---
         const getPlanetPosition = (angle, xRadius, zRadius, inclination, node, centerX) => {
             const flatX = Math.cos(angle) * xRadius;
@@ -135,6 +111,7 @@ const SolarSystem = ({
         }
 
         const textureLoader = new THREE.TextureLoader();
+        textureLoader.crossOrigin = 'anonymous';
 
         // --- VARIABLES FOR ANIMATION ---
         // Declared in top scope of initThree to be accessible by animate()
@@ -147,7 +124,7 @@ const SolarSystem = ({
 
         // --- 1. BACKGROUND SPHERE (8k Stars Image) ---
         const bgGeometry = new THREE.SphereGeometry(2500, 64, 64);
-        const bgTexture = textureLoader.load('8k_stars.png');
+        const bgTexture = textureLoader.load(`${textureBaseUrl}/8k_stars.png`);
         const bgMaterial = new THREE.MeshBasicMaterial({
             map: bgTexture,
             side: THREE.BackSide,
@@ -249,7 +226,7 @@ const SolarSystem = ({
 
         // 1. Sun Surface
         const sunGeometry = new THREE.SphereGeometry(sunSize, 64, 64);
-        const sunTexture = textureLoader.load('8k_sun.jpg');
+        const sunTexture = textureLoader.load(`${textureBaseUrl}/8k_sun.jpg`);
         const sunMaterial = new THREE.MeshBasicMaterial({
             map: sunTexture,
             color: 0xffffff,
@@ -300,7 +277,7 @@ const SolarSystem = ({
         sunGroup.add(sunBrightGlow);
 
         // 5. LENS FLARE
-        const flareTexture = textureLoader.load('lensflare0.png');
+        const flareTexture = textureLoader.load(`${textureBaseUrl}/lensflare0.png`);
         const flareMaterial = new THREE.SpriteMaterial({
             map: flareTexture,
             color: 0xffffff,
@@ -451,16 +428,16 @@ const SolarSystem = ({
             // 3. Planet Mesh
             let geometry = new THREE.SphereGeometry(data.size, 32, 32);
             let material = new THREE.MeshPhongMaterial({
-                map: textureLoader.load(data.textureImg),
+                map: textureLoader.load(`${textureBaseUrl}/${data.textureImg}`),
                 specular: new THREE.Color(0x333333),
                 shininess: 10
             });
 
             if (data.isEarth) {
                 material = new THREE.MeshPhongMaterial({
-                    map: textureLoader.load('earth_daymap.jpg'),
-                    specularMap: textureLoader.load('earth_specular.jpg'),
-                    normalMap: textureLoader.load('earth_normal.jpg'),
+                    map: textureLoader.load(`${textureBaseUrl}/earth_daymap.jpg`),
+                    specularMap: textureLoader.load(`${textureBaseUrl}/earth_specular.jpg`),
+                    normalMap: textureLoader.load(`${textureBaseUrl}/earth_normal.jpg`),
                     specular: new THREE.Color(0x333333),
                     shininess: 15
                 });
@@ -475,7 +452,7 @@ const SolarSystem = ({
 
             if (data.hasRing && data.ringTexture) {
                 const ringGeom = new THREE.RingGeometry(data.size * 1.4, data.size * 2.5, 64);
-                const ringTex = textureLoader.load(data.ringTexture);
+                const ringTex = textureLoader.load(`${textureBaseUrl}/${data.ringTexture}`);
                 const pos = ringGeom.attributes.position;
                 const v3 = new THREE.Vector3();
                 for (let i = 0; i < pos.count; i++) {
@@ -491,7 +468,7 @@ const SolarSystem = ({
 
             if (data.isEarth) {
                 const moonGeom = new THREE.SphereGeometry(data.size * 0.27, 16, 16);
-                const moonMat = new THREE.MeshPhongMaterial({ map: textureLoader.load('moonmap.jpg'), shininess: 5, specular: new THREE.Color(0x000000) });
+                const moonMat = new THREE.MeshPhongMaterial({ map: textureLoader.load(`${textureBaseUrl}/moonmap.jpg`), shininess: 5, specular: new THREE.Color(0x000000) });
                 const moonMesh = new THREE.Mesh(moonGeom, moonMat);
                 moonMesh.position.set(data.size * 2.5, 0, 0);
                 mesh.add(moonMesh);
@@ -530,7 +507,7 @@ const SolarSystem = ({
                     const moonSize = data.size * 0.15 + Math.random() * 0.1;
                     const moonGeom = new THREE.SphereGeometry(moonSize, 8, 8);
                     let moonMat;
-                    if (data.isEarth && m === 0) moonMat = new THREE.MeshPhongMaterial({ map: textureLoader.load('moonmap.jpg'), shininess: 5 });
+                    if (data.isEarth && m === 0) moonMat = new THREE.MeshPhongMaterial({ map: textureLoader.load(`${textureBaseUrl}/moonmap.jpg`), shininess: 5 });
                     else moonMat = new THREE.MeshPhongMaterial({ color: 0xcccccc, shininess: 2 });
                     const moonMesh = new THREE.Mesh(moonGeom, moonMat);
                     moonMesh.position.set(moonDist, 0, 0);

@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Globe, MapPin, Navigation, Maximize, RotateCw, Moon, Zap, Layers, ChevronRight, Activity, Wifi, Clock, ArrowUpRight } from 'lucide-react';
-import { loadThree } from '../lib/threeLoader';
+import { Activity } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
 
 const EarthMoonSatellite = ({
     // Positioning
@@ -33,26 +33,10 @@ const EarthMoonSatellite = ({
     const [currentTime, setCurrentTime] = useState(new Date());
     const [altitude, setAltitude] = useState(408.5); // km
 
-    // Load Three.js
+    // Initialize Three.js
     useEffect(() => {
-        let cancelled = false;
-
-        loadThree()
-            .then(() => {
-                if (!cancelled && window.THREE) {
-                    initThree();
-                }
-            })
-            .catch((error) => {
-                if (!cancelled) {
-                    console.error('Failed to load Three.js:', error);
-                    setLoading(false);
-                }
-            });
-
-        return () => {
-            cancelled = true;
-        };
+        const cleanup = initThree();
+        return cleanup;
     }, []);
 
     // Live Clock & Altitude Fluctuation
@@ -65,8 +49,6 @@ const EarthMoonSatellite = ({
     }, []);
 
     const initThree = () => {
-        const THREE = window.THREE;
-
         // Scene Setup
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000); // Pure Black
@@ -89,6 +71,7 @@ const EarthMoonSatellite = ({
         }
 
         const textureLoader = new THREE.TextureLoader();
+        textureLoader.crossOrigin = 'anonymous';
 
         // --- Starfield ---
         const starCount = 8000;

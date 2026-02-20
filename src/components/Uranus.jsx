@@ -1,20 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-
-// Self-contained Three.js loader
-const loadThree = () => {
-    return new Promise((resolve, reject) => {
-        if (window.THREE) {
-            resolve();
-            return;
-        }
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-        script.async = true;
-        script.onload = () => resolve();
-        script.onerror = (e) => reject(e);
-        document.head.appendChild(script);
-    });
-};
+import * as THREE from 'three';
 
 const Uranus = ({
     // Positioning
@@ -35,7 +20,8 @@ const Uranus = ({
     ringRotationSpeed = 0.0008,
     particleRotationSpeed = 0.008,
     starCount = 8000,
-    autoRotate = true
+    autoRotate = true,
+    textureBaseUrl = 'https://cdn.jsdelivr.net/npm/3d-solar-system-globe/dist'
 }) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
@@ -43,31 +29,13 @@ const Uranus = ({
     const [isDragging, setIsDragging] = useState(false);
     const [coordinates, setCoordinates] = useState({ lat: 0, long: 0 });
 
-    // Load Three.js
+    // Initialize Three.js
     useEffect(() => {
-        let cancelled = false;
-
-        loadThree()
-            .then(() => {
-                if (!cancelled && window.THREE) {
-                    initThree();
-                }
-            })
-            .catch((error) => {
-                if (!cancelled) {
-                    console.error('Failed to load Three.js:', error);
-                    setLoading(false);
-                }
-            });
-
-        return () => {
-            cancelled = true;
-        };
+        const cleanup = initThree();
+        return cleanup;
     }, []);
 
     const initThree = () => {
-        const THREE = window.THREE;
-
         // Calculate outer radius
         const ringOuterRadius = ringInnerRadius + ringWidth;
 
@@ -95,10 +63,11 @@ const Uranus = ({
         }
 
         const textureLoader = new THREE.TextureLoader();
+        textureLoader.crossOrigin = 'anonymous';
 
         // --- 1. BACKGROUND SPHERE (8k Stars) ---
         const bgGeometry = new THREE.SphereGeometry(2500, 64, 64);
-        const bgTexture = textureLoader.load('8k_stars.png');
+        const bgTexture = textureLoader.load(`${textureBaseUrl}/8k_stars.png`);
         const bgMaterial = new THREE.MeshBasicMaterial({
             map: bgTexture,
             side: THREE.BackSide,
@@ -207,7 +176,7 @@ const Uranus = ({
         // Uranus Surface
         const uranusGeometry = new THREE.SphereGeometry(uranusSize, 64, 64);
         const uranusMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('uranus.jpg'),
+            map: textureLoader.load(`${textureBaseUrl}/uranus.jpg`),
             shininess: 10
         });
         const uranus = new THREE.Mesh(uranusGeometry, uranusMaterial);
@@ -219,7 +188,7 @@ const Uranus = ({
         // Increased segments to 128 for smoother shadow edges
         const ringGeometry = new THREE.RingGeometry(ringInnerRadius, ringOuterRadius, 128);
         const ringMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('uranus_ring.png'),
+            map: textureLoader.load(`${textureBaseUrl}/uranus_ring.png`),
             transparent: true,
             opacity: 0.7,
             side: THREE.DoubleSide,

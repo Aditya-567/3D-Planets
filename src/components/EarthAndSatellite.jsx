@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { loadThree } from '../lib/threeLoader';
+import { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
 
 const EarthAndSatellite = ({
     // Positioning
@@ -31,31 +31,13 @@ const EarthAndSatellite = ({
     const rotationSpeedRef = useRef(earthRotationSpeed);
     const [isDragging, setIsDragging] = useState(false);
 
-    // Load Three.js
+    // Initialize Three.js
     useEffect(() => {
-        let cancelled = false;
-
-        loadThree()
-            .then(() => {
-                if (!cancelled && window.THREE) {
-                    initThree();
-                }
-            })
-            .catch((error) => {
-                if (!cancelled) {
-                    console.error('Failed to load Three.js:', error);
-                    setLoading(false);
-                }
-            });
-
-        return () => {
-            cancelled = true;
-        };
+        const cleanup = initThree();
+        return cleanup;
     }, []);
 
     const initThree = () => {
-        const THREE = window.THREE;
-
         // Scene Setup
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000); // Pure Black
@@ -78,6 +60,7 @@ const EarthAndSatellite = ({
         }
 
         const textureLoader = new THREE.TextureLoader();
+        textureLoader.crossOrigin = 'anonymous';
 
         // --- Starfield (Spherical Distribution) ---
         const starGeometry = new THREE.BufferGeometry();

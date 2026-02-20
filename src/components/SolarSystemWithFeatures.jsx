@@ -1,5 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Globe, Layers, Activity, Clock, Sun as SunIcon, X, Info, Type, Grid, ArrowLeft, Thermometer, Ruler, Zap, Hash, Eye, EyeOff } from 'lucide-react';
+import { Activity, ArrowLeft, Clock, Eye, EyeOff, Globe, Grid, Hash, Layers, Ruler, Sun as SunIcon, Thermometer, X, Zap } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
+
+const TEXTURE_BASE_URL = 'https://cdn.jsdelivr.net/npm/3d-solar-system-globe/dist';
 
 // --- SHARED DATA ---
 const CELESTIAL_DATA = [
@@ -57,22 +60,9 @@ const GlobeApp = () => {
         }
     }, [activeView]);
 
-    // Load Three.js dynamically
+    // Initialize Three.js
     useEffect(() => {
-        const loadThree = async () => {
-            if (window.THREE) {
-                initThree();
-                return;
-            }
-
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-            script.async = true;
-            script.onload = initThree;
-            document.body.appendChild(script);
-        };
-
-        loadThree();
+        initThree();
 
         return () => {
             if (frameIdRef.current) cancelAnimationFrame(frameIdRef.current);
@@ -95,10 +85,7 @@ const GlobeApp = () => {
     }, []);
 
     const initThree = () => {
-        if (!window.THREE) return;
         if (rendererRef.current) return; // Prevent double init
-
-        const THREE = window.THREE;
 
         // --- HELPER FUNCTIONS ---
         const getPlanetPosition = (angle, xRadius, zRadius, inclination, node, centerX) => {
@@ -182,6 +169,7 @@ const GlobeApp = () => {
         }
 
         const textureLoader = new THREE.TextureLoader();
+        textureLoader.crossOrigin = 'anonymous';
 
         // --- VARIABLES FOR ANIMATION ---
         // Explicitly declaring all variables here for scope access in animate()
@@ -199,7 +187,7 @@ const GlobeApp = () => {
 
         // --- 1. BACKGROUND ---
         const bgGeometry = new THREE.SphereGeometry(3000, 64, 64);
-        const bgTexture = textureLoader.load('8k_stars.png');
+        const bgTexture = textureLoader.load(`${TEXTURE_BASE_URL}/8k_stars.png`);
         const bgMaterial = new THREE.MeshBasicMaterial({ map: bgTexture, side: THREE.BackSide, transparent: true, opacity: 0.6, depthWrite: false });
         backgroundSphere = new THREE.Mesh(bgGeometry, bgMaterial);
         backgroundGroup.add(backgroundSphere);
@@ -254,7 +242,7 @@ const GlobeApp = () => {
 
         // --- REALISTIC SUN ---
         const sunGeometry = new THREE.SphereGeometry(4.0, 64, 64);
-        const sunMaterial = new THREE.MeshBasicMaterial({ map: textureLoader.load('8k_sun.jpg'), color: 0xffffff });
+        const sunMaterial = new THREE.MeshBasicMaterial({ map: textureLoader.load(`${TEXTURE_BASE_URL}/8k_sun.jpg`), color: 0xffffff });
         sunMesh = new THREE.Mesh(sunGeometry, sunMaterial);
         sunMesh.userData = CELESTIAL_DATA[0];
         solarSystemGroup.add(sunMesh);
@@ -269,7 +257,7 @@ const GlobeApp = () => {
         sunBloom.scale.set(22, 22, 1); solarSystemGroup.add(sunBloom);
         sunBrightGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: createGlowTexture(0xffffee), color: 0xffffff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }));
         sunBrightGlow.scale.set(10, 10, 1); solarSystemGroup.add(sunBrightGlow);
-        sunFlare = new THREE.Sprite(new THREE.SpriteMaterial({ map: textureLoader.load('lensflare0.png'), color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, opacity: 0.8, depthWrite: false }));
+        sunFlare = new THREE.Sprite(new THREE.SpriteMaterial({ map: textureLoader.load(`${TEXTURE_BASE_URL}/lensflare0.png`), color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, opacity: 0.8, depthWrite: false }));
         sunFlare.scale.set(40, 40, 1.0); solarSystemGroup.add(sunFlare);
 
         const sunLight = new THREE.PointLight(0xffffff, 2.5, 1500);
@@ -350,7 +338,7 @@ const GlobeApp = () => {
             solarSystemGroup.add(trailLine);
 
             // Planet Mesh
-            const mesh = new THREE.Mesh(new THREE.SphereGeometry(data.size, 32, 32), new THREE.MeshPhongMaterial({ map: textureLoader.load(data.textureImg), specular: new THREE.Color(0x333333), shininess: 10 }));
+            const mesh = new THREE.Mesh(new THREE.SphereGeometry(data.size, 32, 32), new THREE.MeshPhongMaterial({ map: textureLoader.load(`${TEXTURE_BASE_URL}/${data.textureImg}`), specular: new THREE.Color(0x333333), shininess: 10 }));
             mesh.userData = data;
             if (data.name === "Haumea") mesh.scale.set(1.5, 0.75, 0.75);
             solarSystemGroup.add(mesh);
@@ -362,7 +350,7 @@ const GlobeApp = () => {
             // Rings
             if (data.hasRing && data.ringTexture) {
                 const ringGeom = new THREE.RingGeometry(data.size * 1.4, data.size * 2.5, 64);
-                const ringTex = textureLoader.load(data.ringTexture);
+                const ringTex = textureLoader.load(`${TEXTURE_BASE_URL}/${data.ringTexture}`);
                 const pos = ringGeom.attributes.position;
                 const v3 = new THREE.Vector3();
                 for (let i = 0; i < pos.count; i++) {
@@ -396,7 +384,7 @@ const GlobeApp = () => {
                     orbitContainer.add(moonRotator);
                     const moonSize = data.size * 0.15 + Math.random() * 0.1;
                     const moonGeom = new THREE.SphereGeometry(moonSize, 8, 8);
-                    let moonMat = (data.name === "Earth" && m === 0) ? new THREE.MeshPhongMaterial({ map: textureLoader.load('moonmap.jpg'), shininess: 5 }) : new THREE.MeshPhongMaterial({ color: 0xcccccc, shininess: 2 });
+                    let moonMat = (data.name === "Earth" && m === 0) ? new THREE.MeshPhongMaterial({ map: textureLoader.load(`${TEXTURE_BASE_URL}/moonmap.jpg`), shininess: 5 }) : new THREE.MeshPhongMaterial({ color: 0xcccccc, shininess: 2 });
                     const moonMesh = new THREE.Mesh(moonGeom, moonMat);
                     moonMesh.position.set(moonDist, 0, 0);
                     moonRotator.add(moonMesh);

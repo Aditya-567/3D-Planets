@@ -1,20 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-
-// Self-contained Three.js loader
-const loadThree = () => {
-    return new Promise((resolve, reject) => {
-        if (window.THREE) {
-            resolve();
-            return;
-        }
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-        script.async = true;
-        script.onload = () => resolve();
-        script.onerror = (e) => reject(e);
-        document.head.appendChild(script);
-    });
-};
+import { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
 
 const Pluto = ({
     // Positioning
@@ -29,7 +14,8 @@ const Pluto = ({
     plutoSize = 0.7,
     plutoRotationSpeed = 0.0008,
     starCount = 8000,
-    autoRotate = true
+    autoRotate = true,
+    textureBaseUrl = 'https://cdn.jsdelivr.net/npm/3d-solar-system-globe/dist'
 }) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
@@ -37,31 +23,13 @@ const Pluto = ({
     const [isDragging, setIsDragging] = useState(false);
     const [coordinates, setCoordinates] = useState({ lat: 0, long: 0 });
 
-    // Load Three.js
+    // Initialize Three.js
     useEffect(() => {
-        let cancelled = false;
-
-        loadThree()
-            .then(() => {
-                if (!cancelled && window.THREE) {
-                    initThree();
-                }
-            })
-            .catch((error) => {
-                if (!cancelled) {
-                    console.error('Failed to load Three.js:', error);
-                    setLoading(false);
-                }
-            });
-
-        return () => {
-            cancelled = true;
-        };
+        const cleanup = initThree();
+        return cleanup;
     }, []);
 
     const initThree = () => {
-        const THREE = window.THREE;
-
         // Scene Setup
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000); // Pure Black
@@ -84,10 +52,11 @@ const Pluto = ({
         }
 
         const textureLoader = new THREE.TextureLoader();
+        textureLoader.crossOrigin = 'anonymous';
 
         // --- 1. BACKGROUND SPHERE (8k Stars Image) ---
         const bgGeometry = new THREE.SphereGeometry(4000, 64, 64);
-        const bgTexture = textureLoader.load('8k_stars.png');
+        const bgTexture = textureLoader.load(`${textureBaseUrl}/8k_stars.png`);
         const bgMaterial = new THREE.MeshBasicMaterial({
             map: bgTexture,
             side: THREE.BackSide,
@@ -195,7 +164,7 @@ const Pluto = ({
         // Pluto Surface
         const plutoGeometry = new THREE.SphereGeometry(plutoSize, 64, 64);
         const plutoMaterial = new THREE.MeshPhongMaterial({
-            map: textureLoader.load('plutomap.jpg'),
+            map: textureLoader.load(`${textureBaseUrl}/plutomap.jpg`),
             shininess: 5
         });
         const pluto = new THREE.Mesh(plutoGeometry, plutoMaterial);
@@ -243,7 +212,7 @@ const Pluto = ({
             const geometry = new THREE.SphereGeometry(moon.size, 32, 32);
             let material;
             if (moon.texture) {
-                material = new THREE.MeshPhongMaterial({ map: textureLoader.load(moon.texture), shininess: 5 });
+                material = new THREE.MeshPhongMaterial({ map: textureLoader.load(`${textureBaseUrl}/${moon.texture}`), shininess: 5 });
             } else {
                 material = new THREE.MeshPhongMaterial({ color: moon.color, shininess: 5 });
             }

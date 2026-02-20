@@ -1,20 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-
-// Self-contained Three.js loader
-const loadThree = () => {
-    return new Promise((resolve, reject) => {
-        if (window.THREE) {
-            resolve();
-            return;
-        }
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-        script.async = true;
-        script.onload = () => resolve();
-        script.onerror = (e) => reject(e);
-        document.head.appendChild(script);
-    });
-};
+import { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
 
 const EarthAndMoon = ({
     // Positioning
@@ -34,7 +19,8 @@ const EarthAndMoon = ({
     cloudOpacity = 0.4,
     atmosphereOpacity = 0.15,
     starCount = 8000,
-    autoRotate = true
+    autoRotate = true,
+    textureBaseUrl = 'https://cdn.jsdelivr.net/npm/3d-solar-system-globe/dist'
 }) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
@@ -42,31 +28,13 @@ const EarthAndMoon = ({
     const [isDragging, setIsDragging] = useState(false);
     const [coordinates, setCoordinates] = useState({ lat: 0, long: 0 });
 
-    // Load Three.js
+    // Initialize Three.js
     useEffect(() => {
-        let cancelled = false;
-
-        loadThree()
-            .then(() => {
-                if (!cancelled && window.THREE) {
-                    initThree();
-                }
-            })
-            .catch((error) => {
-                if (!cancelled) {
-                    console.error('Failed to load Three.js:', error);
-                    setLoading(false);
-                }
-            });
-
-        return () => {
-            cancelled = true;
-        };
+        const cleanup = initThree();
+        return cleanup;
     }, []);
 
     const initThree = () => {
-        const THREE = window.THREE;
-
         // Scene Setup
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000); // Pure Black
@@ -89,10 +57,11 @@ const EarthAndMoon = ({
         }
 
         const textureLoader = new THREE.TextureLoader();
+        textureLoader.crossOrigin = 'anonymous';
 
         // --- 1. BACKGROUND SPHERE (8k Stars) ---
         const bgGeometry = new THREE.SphereGeometry(2500, 64, 64);
-        const bgTexture = textureLoader.load('8k_stars.png');
+        const bgTexture = textureLoader.load(`${textureBaseUrl}/8k_stars.png`);
         const bgMaterial = new THREE.MeshBasicMaterial({
             map: bgTexture,
             side: THREE.BackSide,

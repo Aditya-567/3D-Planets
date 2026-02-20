@@ -1,20 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-
-// Self-contained Three.js loader
-const loadThree = () => {
-    return new Promise((resolve, reject) => {
-        if (window.THREE) {
-            resolve();
-            return;
-        }
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-        script.async = true;
-        script.onload = () => resolve();
-        script.onerror = (e) => reject(e);
-        document.head.appendChild(script);
-    });
-};
+import * as THREE from 'three';
 
 // Helper to generate a soft glow texture for stars
 const getTexture = (THREE) => {
@@ -100,10 +85,11 @@ const Galaxy = ({
     left,
     right,
     className = "",
-    style = {}
+    style = {},
+    textureBaseUrl = 'https://cdn.jsdelivr.net/npm/3d-solar-system-globe/dist'
 }) => {
     const mountRef = useRef(null);
-    const [isThreeLoaded, setIsThreeLoaded] = useState(false);
+    const [isThreeLoaded] = useState(true);
 
     // Initialize parameters state
     const [parameters, setParameters] = useState({
@@ -144,13 +130,6 @@ const Galaxy = ({
     const frameIdRef = useRef(null);
     const rotation = useRef({ ...tilting });
 
-    // Load Three.js
-    useEffect(() => {
-        loadThree().then(() => {
-            setIsThreeLoaded(true);
-        });
-    }, []);
-
     // Sync props to state
     useEffect(() => {
         setParameters(prev => ({
@@ -187,7 +166,6 @@ const Galaxy = ({
         // --- INIT ---
         if (!mountRef.current || !isThreeLoaded) return;
 
-        const THREE = window.THREE;
         const width = mountRef.current.offsetWidth || window.innerWidth;
         const height = mountRef.current.offsetHeight || window.innerHeight;
 
@@ -284,7 +262,6 @@ const Galaxy = ({
     // --- GALAXY & BACKGROUND GENERATOR ---
     useEffect(() => {
         if (!sceneRef.current || !isThreeLoaded) return;
-        const THREE = window.THREE;
 
         // --- 1. CLEANUP ---
         if (pointsRef.current) {
@@ -482,8 +459,9 @@ const Galaxy = ({
         // --- 5. BACKGROUND SPHERE (Image Texture) ---
         if (parameters.bgImageEnabled) {
             const textureLoader = new THREE.TextureLoader();
+            textureLoader.crossOrigin = 'anonymous';
             const bgSphereGeometry = new THREE.SphereGeometry(4000, 64, 64);
-            const bgSphereTexture = textureLoader.load('8k_stars.png');
+            const bgSphereTexture = textureLoader.load(`${textureBaseUrl}/8k_stars.png`);
             const bgSphereMaterial = new THREE.MeshBasicMaterial({
                 map: bgSphereTexture,
                 side: THREE.BackSide,
