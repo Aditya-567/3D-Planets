@@ -404,8 +404,9 @@ const Jupiter = ({
             galaxyGeometry.dispose();
             galaxyMaterial.dispose();
             ringGeometry.dispose();
-            ringMaterial.dispose();            atmosphereGeometry.dispose();
-            atmosphereMaterial.dispose();        };
+            ringMaterial.dispose(); atmosphereGeometry.dispose();
+            atmosphereMaterial.dispose();
+        };
     };
 
     return (
