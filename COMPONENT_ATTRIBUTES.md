@@ -644,7 +644,7 @@ import { DotGlobe } from '3d-solar-system-globe';
 2. **Size Units:** Most size values are relative to the scene scale, not pixels
 3. **Speed Values:** Smaller values result in slower motion
 4. **Performance:** Higher particle counts may impact performance on lower-end devices
-5. **Textures:** Components use texture files from the public directory (e.g., '8k_stars.png', 'earth_daymap.jpg')
+5. **Textures:** Components use texture files from the public directory (e.g., '8k_stars.webp', 'earth_daymap.jpg')
 
 ---
 

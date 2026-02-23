@@ -2,7 +2,7 @@ import { Activity, ArrowLeft, Clock, Eye, EyeOff, Globe, Grid, Hash, Layers, Rul
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
-const TEXTURE_BASE_URL = 'https://cdn.jsdelivr.net/npm/3d-solar-system-globe/dist';
+const TEXTURE_BASE_URL = 'https://cdn.jsdelivr.net/gh/Aditya-567/3D-Planets@main/public';
 
 // --- SHARED DATA ---
 const CELESTIAL_DATA = [
@@ -187,7 +187,7 @@ const GlobeApp = () => {
 
         // --- 1. BACKGROUND ---
         const bgGeometry = new THREE.SphereGeometry(3000, 64, 64);
-        const bgTexture = textureLoader.load(`${TEXTURE_BASE_URL}/8k_stars.png`);
+        const bgTexture = textureLoader.load(`${TEXTURE_BASE_URL}/8k_stars.webp`);
         const bgMaterial = new THREE.MeshBasicMaterial({ map: bgTexture, side: THREE.BackSide, transparent: true, opacity: 0.6, depthWrite: false });
         backgroundSphere = new THREE.Mesh(bgGeometry, bgMaterial);
         backgroundGroup.add(backgroundSphere);

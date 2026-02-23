@@ -20,7 +20,8 @@ const Jupiter = ({
     ringRotationSpeed = 0.005,
     starCount = 8000,
     autoRotate = true,
-    textureBaseUrl = 'https://cdn.jsdelivr.net/npm/3d-solar-system-globe/dist'
+
+    textureBaseUrl = 'https://cdn.jsdelivr.net/gh/Aditya-567/3D-Planets@main/public'
 }) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
@@ -61,7 +62,7 @@ const Jupiter = ({
 
         // --- 1. BACKGROUND SPHERE (8k Stars) ---
         const bgGeometry = new THREE.SphereGeometry(2500, 64, 64);
-        const bgTexture = textureLoader.load(`${textureBaseUrl}/8k_stars.png`);
+        const bgTexture = textureLoader.load(`${textureBaseUrl}/8k_stars.webp`);
         const bgMaterial = new THREE.MeshBasicMaterial({
             map: bgTexture,
             side: THREE.BackSide,

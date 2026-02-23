@@ -1,0 +1,21 @@
+# Exclude images (served via jsDelivr CDN, not needed in npm package)
+public/
+
+# Dev & source files
+src/
+vite.config.js
+postcss.config.cjs
+tailwind.config.cjs
+index.html
+
+# Logs & misc
+logs
+*.log
+npm-debug.log*
+.DS_Store
+.env
+*.local
+
+# Editor
+.vscode
+.idea

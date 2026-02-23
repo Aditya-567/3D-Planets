@@ -86,7 +86,7 @@ const Galaxy = ({
     right,
     className = "",
     style = {},
-    textureBaseUrl = 'https://cdn.jsdelivr.net/npm/3d-solar-system-globe/dist'
+    textureBaseUrl = 'https://cdn.jsdelivr.net/gh/Aditya-567/3D-Planets@main/public'
 }) => {
     const mountRef = useRef(null);
     const [isThreeLoaded] = useState(true);
@@ -461,7 +461,7 @@ const Galaxy = ({
             const textureLoader = new THREE.TextureLoader();
             textureLoader.crossOrigin = 'anonymous';
             const bgSphereGeometry = new THREE.SphereGeometry(4000, 64, 64);
-            const bgSphereTexture = textureLoader.load(`${textureBaseUrl}/8k_stars.png`);
+            const bgSphereTexture = textureLoader.load(`${textureBaseUrl}/8k_stars.webp`);
             const bgSphereMaterial = new THREE.MeshBasicMaterial({
                 map: bgSphereTexture,
                 side: THREE.BackSide,
