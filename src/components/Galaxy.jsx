@@ -216,7 +216,7 @@ const Galaxy = ({
                 }
                 // Rotate texture sphere
                 if (bgSphereRef.current) {
-                    bgSphereRef.current.rotation.y -= 0.0002;
+                    bgSphereRef.current.rotation.y -= 0.0005;
                 }
             }
 
@@ -466,7 +466,7 @@ const Galaxy = ({
                 map: bgSphereTexture,
                 side: THREE.BackSide,
                 transparent: true,
-                opacity: 1, // Increased from 0.6 to 1 to fix dullness
+                opacity: 0.6, // Increased from 0.6 to 1 to fix dullness
                 depthWrite: false,
                 fog: false
             });

@@ -341,8 +341,8 @@ const Neptune = ({
             neptuneRing.rotation.y -= ringRotationSpeed;
 
             // Rotate Starfields and Background
-            stars.rotation.y -= 0.0009;
-            backgroundSphere.rotation.y -= 0.0009;
+            stars.rotation.y -= 0.0012;
+            backgroundSphere.rotation.y -= 0.0012;
 
             const time = Date.now() * 0.001;
             const colors = starGeometry.attributes.color.array;

@@ -83,7 +83,7 @@ const Mars = ({
             size: 0.8,
             vertexColors: true,
             transparent: true,
-            opacity: 0.3,
+            opacity: 0.5,
             blending: THREE.AdditiveBlending,
             depthWrite: false
         });

@@ -55,13 +55,13 @@ const Pluto = ({
         textureLoader.crossOrigin = 'anonymous';
 
         // --- 1. BACKGROUND SPHERE (8k Stars Image) ---
-        const bgGeometry = new THREE.SphereGeometry(4000, 64, 64);
+        const bgGeometry = new THREE.SphereGeometry(6000, 64, 64);
         const bgTexture = textureLoader.load(`${textureBaseUrl}/8k_stars.webp`);
         const bgMaterial = new THREE.MeshBasicMaterial({
             map: bgTexture,
             side: THREE.BackSide,
             transparent: true,
-            opacity: 0.4,
+            opacity: 0.6,
             depthWrite: false,
             fog: false
         });
@@ -69,7 +69,7 @@ const Pluto = ({
         scene.add(backgroundSphere);
 
         // --- 2. GALAXY SPHERE (Nebula particles - Cold/Blue tones for Pluto) ---
-        const galaxyCount = 20000;
+        const galaxyCount = 30000;
         const galaxyGeometry = new THREE.BufferGeometry();
         const galaxyMaterial = new THREE.PointsMaterial({
             size: 0.8,
@@ -83,29 +83,7 @@ const Pluto = ({
         const galaxyVertices = [];
         const galaxyColors = [];
 
-        for (let i = 0; i < galaxyCount; i++) {
-            const r = 2500 + Math.random() * 1000;
-            const theta = 2 * Math.PI * Math.random();
-            const phi = Math.acos(2 * Math.random() - 1);
 
-            const x = r * Math.sin(phi) * Math.cos(theta);
-            const y = r * Math.sin(phi) * Math.sin(theta);
-            const z = r * Math.cos(phi);
-
-            galaxyVertices.push(x, y, z);
-
-            const col = new THREE.Color();
-            const rand = Math.random();
-            // Pluto Theme: Deep Blues, Cyans, and Purples
-            if (rand > 0.6) col.setHex(0x4169e1); // Royal Blue
-            else if (rand > 0.3) col.setHex(0x00ced1); // Dark Turquoise
-            else col.setHex(0x8a2be2); // Blue Violet
-
-            const intensity = 0.3 + Math.random() * 0.7;
-            col.multiplyScalar(intensity);
-
-            galaxyColors.push(col.r, col.g, col.b);
-        }
 
         galaxyGeometry.setAttribute('position', new THREE.Float32BufferAttribute(galaxyVertices, 3));
         galaxyGeometry.setAttribute('color', new THREE.Float32BufferAttribute(galaxyColors, 3));
@@ -178,7 +156,7 @@ const Pluto = ({
         const atmosphereMaterial = new THREE.MeshPhongMaterial({
             color: 0x8899cc,
             transparent: true,
-            opacity: 0.08,
+            opacity: 0.6,
             side: THREE.BackSide,
             blending: THREE.AdditiveBlending,
         });
@@ -383,8 +361,8 @@ const Pluto = ({
             plutoGroup.rotation.x += (targetRotationX - plutoGroup.rotation.x) * 0.05;
 
             // Rotate Starfields
-            stars.rotation.y -= 0.0009;
-            backgroundSphere.rotation.y -= 0.0009;
+            stars.rotation.y -= 0.001;
+            backgroundSphere.rotation.y -= 0.001;
 
             // Animate Moons and Trails
             activeMoons.forEach(obj => {

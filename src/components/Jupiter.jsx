@@ -356,8 +356,8 @@ const Jupiter = ({
             jupiterRing.rotation.y -= ringRotationSpeed;
 
             // Rotate Starfields and Background
-            stars.rotation.y -= 0.0008;
-            backgroundSphere.rotation.y -= 0.0008;
+            stars.rotation.y -= 0.0012;
+            backgroundSphere.rotation.y -= 0.0012;
 
             const time = Date.now() * 0.001;
             const colors = starGeometry.attributes.color.array;

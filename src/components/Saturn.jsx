@@ -412,8 +412,8 @@ const Saturn = ({
             });
 
             // Rotate Starfields and Background
-            if (stars) stars.rotation.y -= 0.002;
-            if (backgroundSphere) backgroundSphere.rotation.y -= 0.002;
+            if (stars) stars.rotation.y -= 0.0012;
+            if (backgroundSphere) backgroundSphere.rotation.y -= 0.0012;
 
             const time = Date.now() * 0.001;
             const colors = starGeometry.attributes.color.array;
