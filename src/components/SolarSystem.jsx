@@ -21,7 +21,8 @@ const SolarSystem = ({
     showTrails = true,
     initialDistance = 280,
     autoRotate = true,
-    textureBaseUrl = 'https://cdn.jsdelivr.net/gh/Aditya-567/3D-Planets@main/public'
+    textureBaseUrl = 'https://cdn.jsdelivr.net/gh/Aditya-567/3D-Planets@main/public',
+    containerHeight = '100vh'
 }) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
@@ -93,13 +94,15 @@ const SolarSystem = ({
         scene.fog = new THREE.FogExp2(0x000000, 0.0003);
         sceneRef.current = scene;
 
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 8000);
+        const W = mountRef.current ? mountRef.current.clientWidth : window.innerWidth;
+        const H = mountRef.current ? mountRef.current.clientHeight : window.innerHeight;
+        const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 8000);
         camera.position.set(0, initialDistance * 0.5, initialDistance);
         camera.lookAt(0, 0, 0);
         cameraRef.current = camera;
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(W, H);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -697,9 +700,11 @@ const SolarSystem = ({
         frameIdRef.current = requestAnimationFrame(animate);
 
         const handleResize = () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
+            const rW = mountRef.current ? mountRef.current.clientWidth : window.innerWidth;
+            const rH = mountRef.current ? mountRef.current.clientHeight : window.innerHeight;
+            camera.aspect = rW / rH;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(rW, rH);
         };
 
         window.addEventListener('resize', handleResize);
@@ -724,13 +729,14 @@ const SolarSystem = ({
 
     return (
         <div
-            className={`relative w-full h-screen bg-black text-white overflow-hidden font-sans selection:bg-orange-500/30 ${className}`}
+            className={`relative w-full bg-black text-white overflow-hidden font-sans selection:bg-orange-500/30 ${className}`}
             style={{
                 position: top || bottom || left || right ? 'absolute' : 'relative',
                 top,
                 bottom,
                 left,
                 right,
+                height: containerHeight,
                 ...style
             }}
         >
@@ -757,10 +763,10 @@ const SolarSystem = ({
 
                     <div className="hidden md:flex gap-1 pointer-events-auto bg-white/5 p-1 rounded-lg backdrop-blur-md border border-white/5">
                         <NavButton icon={<SunIcon size={16} />} label="Solar System" active={activePlanet === "Solar System"} />
-                        
+
                     </div>
                     <div className="pointer-events-auto group cursor-default">
-                        
+
                         <div className="flex items-center gap-4 mt-1">
                             <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-orange-950/30 border border-orange-900/30">
                                 <span className="relative flex h-1.5 w-1.5">
@@ -777,7 +783,7 @@ const SolarSystem = ({
                     </div>
 
                     <div className=" rounded-lg shadow-2xl max-w-md pointer-events-auto relative overflow-hidden group w-full md:w-auto">
-               
+
                         <div className="flex items-start gap-4">
                             <div className="p-2 bg-orange-500/5 border border-orange-500/20 rounded-md text-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.1)]">
                                 <Globe size={16} className="text-orange-400" />
@@ -807,11 +813,11 @@ const SolarSystem = ({
                         </div>
                     </div>
 
-                    
+
                 </div>
             </div>
 
-          
+
 
         </div>
     );

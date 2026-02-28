@@ -22,7 +22,7 @@ const CELESTIAL_DATA = [
     { name: "Eris", type: "Dwarf Planet", description: "Massive dwarf planet in the scattered disc. It is one of the largest known dwarf planets in our solar system.", textureImg: "plutomap.jpg", size: 0.62, distance: 110, speed: 0.0008, orbitColor: 0xaaaaaa, inclination: 44.0, node: 135, ecc: 0.44, moonCount: 1, temp: "-243°C", radius: "1.1k km" }
 ];
 
-const GlobeApp = () => {
+const GlobeApp = ({ containerHeight = '100vh' } = {}) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
 
@@ -145,13 +145,15 @@ const GlobeApp = () => {
         scene.fog = new THREE.FogExp2(0x000000, 0.0003);
         sceneRef.current = scene;
 
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000);
+        const W = mountRef.current ? mountRef.current.clientWidth : window.innerWidth;
+        const H = mountRef.current ? mountRef.current.clientHeight : window.innerHeight;
+        const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 10000);
         camera.position.set(0, 140, 280);
         camera.lookAt(0, 0, 0);
         cameraRef.current = camera;
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(W, H);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -579,8 +581,10 @@ const GlobeApp = () => {
         animate();
 
         window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            const rW = mountRef.current ? mountRef.current.clientWidth : window.innerWidth;
+            const rH = mountRef.current ? mountRef.current.clientHeight : window.innerHeight;
+            camera.aspect = rW / rH; camera.updateProjectionMatrix();
+            renderer.setSize(rW, rH);
         });
     };
 
@@ -633,7 +637,7 @@ const GlobeApp = () => {
     );
 
     return (
-        <div className="relative w-full h-screen bg-black text-white overflow-hidden font-sans selection:bg-orange-500/30">
+        <div className="relative w-full bg-black text-white overflow-hidden font-sans selection:bg-orange-500/30" style={{ height: containerHeight }}>
             <div ref={mountRef} className="absolute inset-0 z-0 cursor-move" />
             <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-orange-900/5 blur-[150px] rounded-full pointer-events-none mix-blend-screen"></div>
 

@@ -14,10 +14,6 @@ import * as THREE from 'three';
  * @param {number} [props.atmosphereOpacity=0.07] - Atmosphere opacity
  * @param {number} [props.floatCount=150] - Floating particles count
  * @param {number} [props.floatColor=0x4ade80] - Floating particles color
- * @param {number} [props.orbitCount=3] - Number of satellite orbits
- * @param {number} [props.orbitRadius=2.5] - Satellite orbit radius
- * @param {number} [props.orbitSpeed=0.015] - Satellite orbital speed
- * @param {number} [props.satelliteColor=0x4ade80] - Satellite color
  * @param {number} [props.lightColor=0x4ade80] - Light source color
  * @param {number} [props.autoRotateSpeed=0.002] - Auto rotation speed
  * @param {number} [props.floatRotateSpeed=0.0005] - Floating particles rotation speed
@@ -36,7 +32,7 @@ const GlobeScene = ({
     cameraZ = 7.5,
 
     // dotted map
-    maxParticles = 20000,
+    maxParticles = 200000,
     dotColor = 0x4ade80,
 
     // atmosphere
@@ -47,12 +43,6 @@ const GlobeScene = ({
     floatCount = 150,
     floatColor = 0x4ade80,
 
-    // satellites
-    orbitCount = 3,
-    orbitRadius = 2.5,
-    orbitSpeed = 0.015,
-    satelliteColor = 0x4ade80,
-
     // lights
     lightColor = 0x4ade80,
 
@@ -61,13 +51,17 @@ const GlobeScene = ({
     floatRotateSpeed = 0.0005,
     mouseInfluence = 0.3,
 
+    // background stars
+    starCount = 30000,
+
     // CSS positioning
     top,
     bottom,
     left,
     right,
     className = "",
-    style = {}
+    style = {},
+    containerHeight = '100vh'
 }) => {
 
     const mountRef = useRef(null);
@@ -277,73 +271,61 @@ const GlobeScene = ({
         scene.add(floatParticles);
         disposables.push(floatGeo, floatMat);
 
-        // -- E. Orbiting Satellites with Trails --
-        const orbitGroup = new THREE.Group();
-        scene.add(orbitGroup);
-
-        const orbits = [];
-
-        for (let i = 0; i < orbitCount; i++) {
-
-            const radius = orbitRadius;
-            const speed = orbitSpeed;
-            const baseColor = new THREE.Color(satelliteColor);
-
-            const trailLength = Math.PI;
-            const trailCurve = new THREE.EllipseCurve(
-                0, 0,
-                radius, radius,
-                -trailLength, 0,
-                false,
-                0
-            );
-
-            const trailPoints = trailCurve.getPoints(64);
-            const trailGeo = new THREE.BufferGeometry().setFromPoints(trailPoints);
-
-            const colors = [];
-            for (let j = 0; j < trailPoints.length; j++) {
-                const alpha = Math.pow(j / (trailPoints.length - 1), 2);
-                colors.push(
-                    baseColor.r * alpha,
-                    baseColor.g * alpha,
-                    baseColor.b * alpha
-                );
-            }
-
-            trailGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-
-            const trailMat = new THREE.LineBasicMaterial({
-                vertexColors: true,
-                transparent: true,
-                opacity: 1.0,
-                blending: THREE.AdditiveBlending
-            });
-
-            const trail = new THREE.Line(trailGeo, trailMat);
-            disposables.push(trailGeo, trailMat);
-
-            const satGeo = new THREE.SphereGeometry(0.05, 16, 16);
-            const satMat = new THREE.MeshBasicMaterial({ color: satelliteColor });
-            const satellite = new THREE.Mesh(satGeo, satMat);
-            disposables.push(satGeo, satMat);
-
-            const ringGroup = new THREE.Group();
-            ringGroup.rotation.x = Math.PI / 3;
-            ringGroup.rotation.y = i * (Math.PI / 1.5);
-
-            ringGroup.add(trail);
-            ringGroup.add(satellite);
-            orbitGroup.add(ringGroup);
-
-            orbits.push({
-                satellite,
-                trail,
-                speed,
-                angle: Math.random() * Math.PI * 2,
-                radius
-            });
+        // -- F. Background Stars --
+        const starGeo = new THREE.BufferGeometry();
+        const starPos = new Float32Array(starCount * 3);
+        const starSizes = new Float32Array(starCount);
+        const starOffsets = new Float32Array(starCount);
+        for (let i = 0; i < starCount; i++) {
+            const r = 40 + Math.random() * 60;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            starPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+            starPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+            starPos[i * 3 + 2] = r * Math.cos(phi);
+            starSizes[i] = Math.random() * 1.5 + 0.3;
+            starOffsets[i] = Math.random() * 100.0;
         }
+        starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+        starGeo.setAttribute('size', new THREE.BufferAttribute(starSizes, 1));
+        starGeo.setAttribute('offset', new THREE.BufferAttribute(starOffsets, 1));
+        const starMat = new THREE.ShaderMaterial({
+            uniforms: {
+                time: { value: 0 },
+                color: { value: new THREE.Color(0xffffff) }
+            },
+            vertexShader: `
+                attribute float size;
+                attribute float offset;
+                uniform float time;
+                varying float vAlpha;
+                void main() {
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    gl_PointSize = size * (300.0 / -mvPosition.z);
+                    gl_Position = projectionMatrix * mvPosition;
+                    float blink = sin(time * 2.0 + offset) * 0.5 + 0.5;
+                    blink = pow(blink, 3.0);
+                    vAlpha = 0.08 + 0.92 * blink;
+                }
+            `,
+            fragmentShader: `
+                uniform vec3 color;
+                varying float vAlpha;
+                void main() {
+                    vec2 center = gl_PointCoord - 0.5;
+                    float dist = length(center);
+                    if (dist > 0.5) discard;
+                    float strength = pow(1.0 - dist * 2.0, 2.0);
+                    gl_FragColor = vec4(color, vAlpha * strength);
+                }
+            `,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+        });
+        const starField = new THREE.Points(starGeo, starMat);
+        scene.add(starField);
+        disposables.push(starGeo, starMat);
 
         // 3. Lighting
         const ambientLight = new THREE.AmbientLight(0x000000, 1);
@@ -373,12 +355,10 @@ const GlobeScene = ({
                 floatParticles.rotation.x = Math.sin(time * 0.5) * 0.1;
             }
 
-            orbits.forEach(orbit => {
-                orbit.angle += orbit.speed;
-                orbit.satellite.position.x = Math.cos(orbit.angle) * orbit.radius;
-                orbit.satellite.position.y = Math.sin(orbit.angle) * orbit.radius;
-                orbit.trail.rotation.z = orbit.angle;
-            });
+            if (starField) {
+                starField.rotation.y += 0.00005;
+                starMat.uniforms.time.value = Date.now() * 0.001;
+            }
 
             if (atmosphere) {
                 const scale = 1 + Math.sin(time * 3) * 0.01;
@@ -436,14 +416,11 @@ const GlobeScene = ({
         atmosphereOpacity,
         floatCount,
         floatColor,
-        orbitCount,
-        orbitRadius,
-        orbitSpeed,
-        satelliteColor,
         lightColor,
         autoRotateSpeed,
         floatRotateSpeed,
         mouseInfluence,
+        starCount,
         top,
         bottom,
         left,
@@ -456,10 +433,16 @@ const GlobeScene = ({
 };
 
 const DotGlobe = (props) => {
-    const { top, bottom, left, right, className = "", style = {} } = props;
+    const {
+        top, bottom, left, right,
+        className = "", style = {},
+        containerHeight = '100vh',
+        ...rest
+    } = props;
+
     return (
-        <div className={`w-full h-screen bg-black relative overflow-hidden ${className}`} style={{ top, bottom, left, right, ...style }}>
-            <GlobeScene {...props} />
+        <div className={`w-full bg-black relative overflow-hidden ${className}`} style={{ top, bottom, left, right, height: containerHeight, ...style }}>
+            <GlobeScene {...rest} />
         </div>
     );
 };

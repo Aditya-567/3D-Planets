@@ -32,16 +32,21 @@ const GlobeScene = ({
     particleColor = 0x4ade80,
     beamSpeed = 0.8,
     autoRotateSpeed = 0.0015,
-    backgroundStarCount = 3000,
+    backgroundStarCount = 20000,
     cameraZ = 7.5,
+    // beams toggle (no reinit)
+    showBeams = true,
     top,
     bottom,
     left,
     right,
     className = "",
-    style = {}
+    style = {},
+    containerHeight = '100vh'
 }) => {
     const mountRef = useRef(null);
+    const showBeamsRef = useRef(showBeams);
+    useEffect(() => { showBeamsRef.current = showBeams; }, [showBeams]);
 
     useEffect(() => {
         if (!mountRef.current) return;
@@ -243,7 +248,9 @@ const GlobeScene = ({
         const beams = new THREE.LineSegments(beamGeo, beamMat);
         const towers = new THREE.Points(towerGeo, towerMat);
 
-        mainGroup.add(staticLines, beams, towers);
+        const beamGroup = new THREE.Group();
+        beamGroup.add(staticLines, beams, towers);
+        mainGroup.add(beamGroup);
 
         disposables.push(staticLineGeo, staticLineMat, beamGeo, beamMat, towerGeo, towerMat);
 
@@ -445,9 +452,9 @@ const GlobeScene = ({
                     vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
                     gl_PointSize = size * ( 300.0 / -mvPosition.z );
                     gl_Position = projectionMatrix * mvPosition;
-
-                    float blink = sin(time * 1.0 + offset);
-                    vAlpha = 0.2 + 0.8 * (0.5 + 0.5 * blink);
+                    float blink = sin(time * 2.0 + offset) * 0.5 + 0.5;
+                    blink = pow(blink, 3.0);
+                    vAlpha = 0.08 + 0.92 * blink;
                 }
             `,
             fragmentShader: `
@@ -524,6 +531,8 @@ const GlobeScene = ({
                 mainGroup.rotation.x *= 0.98;
             }
 
+            beamGroup.visible = showBeamsRef.current;
+
             if (starField) starField.rotation.y = time * 0.02;
 
             if (oceanPoints.material.uniforms) oceanPoints.material.uniforms.time.value = time;
@@ -589,9 +598,9 @@ const GlobeScene = ({
 };
 
 const DotGlobeWithDataLink = (props) => {
-    const { top, bottom, left, right, className = "", style = {} } = props;
+    const { top, bottom, left, right, className = "", style = {}, containerHeight = '100vh' } = props;
     return (
-        <div className={`w-full h-screen bg-black relative overflow-hidden ${className}`} style={{ top, bottom, left, right, ...style }}>
+        <div className={`w-full bg-black relative overflow-hidden ${className}`} style={{ top, bottom, left, right, height: containerHeight, ...style }}>
             <GlobeScene {...props} />
         </div>
     );

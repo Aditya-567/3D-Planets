@@ -91,7 +91,8 @@ const Galaxy = ({
     right,
     className = "",
     style = {},
-    textureBaseUrl = 'https://cdn.jsdelivr.net/gh/Aditya-567/3D-Planets@main/public'
+    textureBaseUrl = 'https://cdn.jsdelivr.net/gh/Aditya-567/3D-Planets@main/public',
+    containerHeight = '100vh'
 }) => {
     const mountRef = useRef(null);
     const [isThreeLoaded] = useState(true);
@@ -548,11 +549,12 @@ const Galaxy = ({
         bottom: bottom,
         left: left,
         right: right,
+        height: containerHeight,
         ...style
     };
 
     return (
-        <div className={`w-full h-screen  overflow-hidden font-sans ${className}`} style={containerStyle}>
+        <div className={`w-full overflow-hidden font-sans ${className}`} style={containerStyle}>
             <style>{`
         .glassy-scrollbar::-webkit-scrollbar {
           width: 8px; 

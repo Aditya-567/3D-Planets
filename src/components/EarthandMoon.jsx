@@ -26,7 +26,8 @@ const EarthAndMoon = ({
     cameraDistance = 2.8,
     cameraFov = 45,
     bgImageOpacity = 0.6,
-    textureBaseUrl = 'https://cdn.jsdelivr.net/gh/Aditya-567/3D-Planets@main/public'
+    textureBaseUrl = 'https://cdn.jsdelivr.net/gh/Aditya-567/3D-Planets@main/public',
+    containerHeight = '100vh'
 }) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
@@ -47,14 +48,16 @@ const EarthAndMoon = ({
         scene.fog = new THREE.FogExp2(0x000000, 0.0003); // Reduced fog for clearer stars
 
         // Camera
-        const camera = new THREE.PerspectiveCamera(cameraFov, window.innerWidth / window.innerHeight, 0.1, 8000);
+        const W = mountRef.current ? mountRef.current.clientWidth : window.innerWidth;
+        const H = mountRef.current ? mountRef.current.clientHeight : window.innerHeight;
+        const camera = new THREE.PerspectiveCamera(cameraFov, W / H, 0.1, 8000);
         const _camAngleRad = cameraAngle * (Math.PI / 180);
         camera.position.set(0, cameraDistance * Math.sin(_camAngleRad), cameraDistance * Math.cos(_camAngleRad));
         camera.lookAt(0, 0, 0);
 
         // Renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(W, H);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -256,8 +259,8 @@ const EarthAndMoon = ({
         let mouseY = 0;
         let mouseXOnMouseDown = 0;
         let mouseYOnMouseDown = 0;
-        let windowHalfX = window.innerWidth / 2;
-        let windowHalfY = window.innerHeight / 2;
+        let windowHalfX = (mountRef.current ? mountRef.current.clientWidth : window.innerWidth) / 2;
+        let windowHalfY = (mountRef.current ? mountRef.current.clientHeight : window.innerHeight) / 2;
         let isMouseDown = false;
 
         // Interaction Handlers
@@ -333,8 +336,8 @@ const EarthAndMoon = ({
             clouds.rotation.y += 0.0004;
 
             // Rotate Starfields and Background
-            stars.rotation.y -= 0.002;
-            backgroundSphere.rotation.y -= 0.0004;
+            stars.rotation.y -= 0.0009;
+            backgroundSphere.rotation.y -= 0.0009;
 
             moonOrbitGroup.rotation.y += moonOrbitSpeed;
             moon.rotation.y += 0.01;
@@ -355,11 +358,13 @@ const EarthAndMoon = ({
         animate();
 
         const handleResize = () => {
-            windowHalfX = window.innerWidth / 2;
-            windowHalfY = window.innerHeight / 2;
-            camera.aspect = window.innerWidth / window.innerHeight;
+            const rW = mountRef.current ? mountRef.current.clientWidth : window.innerWidth;
+            const rH = mountRef.current ? mountRef.current.clientHeight : window.innerHeight;
+            windowHalfX = rW / 2;
+            windowHalfY = rH / 2;
+            camera.aspect = rW / rH;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(rW, rH);
         };
 
         window.addEventListener('resize', handleResize);
@@ -393,13 +398,14 @@ const EarthAndMoon = ({
 
     return (
         <div
-            className={`relative w-full h-screen bg-black text-white overflow-hidden font-sans selection:bg-cyan-500/30 ${className}`}
+            className={`relative w-full bg-black text-white overflow-hidden font-sans selection:bg-cyan-500/30 ${className}`}
             style={{
                 position: top || bottom || left || right ? 'absolute' : 'relative',
                 top,
                 bottom,
                 left,
                 right,
+                height: containerHeight,
                 ...style
             }}
         >
