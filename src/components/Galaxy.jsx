@@ -76,10 +76,15 @@ const Galaxy = ({
     starSize = 0.05,
     rotationSpeed = 0.05,
     tilting = { x: 0.9, y: 0 },
+    cameraAngle = 38,
+    cameraDistance = 8,
+    cameraFov = 75,
+    starAngle = 0,
     enableOptions = true,
     enableStarsBg = true, // Default Points BG
     movingStarsBg = true, // Default Moving
     enableImageBg = true, // New Prop for Image BG
+    bgImageOpacity = 0.6,
     top,
     bottom,
     left,
@@ -106,7 +111,11 @@ const Galaxy = ({
         coreSize: coreSize,
         bgEnabled: enableStarsBg,
         bgMoving: movingStarsBg,
-        bgImageEnabled: enableImageBg // New state
+        bgImageEnabled: enableImageBg, // New state
+        bgImageOpacity: bgImageOpacity,
+        cameraAngle: cameraAngle,
+        cameraDistance: cameraDistance,
+        cameraFov: cameraFov
     });
 
     const parametersRef = useRef(parameters);
@@ -128,7 +137,7 @@ const Galaxy = ({
     const geometryRef = useRef(null);
     const materialRef = useRef(null);
     const frameIdRef = useRef(null);
-    const rotation = useRef({ ...tilting });
+    const rotation = useRef({ x: cameraAngle * (Math.PI / 180), y: tilting?.y || 0 });
 
     // Sync props to state
     useEffect(() => {
@@ -146,16 +155,22 @@ const Galaxy = ({
             coreSize: coreSize,
             bgEnabled: enableStarsBg,
             bgMoving: movingStarsBg,
-            bgImageEnabled: enableImageBg
+            bgImageEnabled: enableImageBg,
+            bgImageOpacity: bgImageOpacity,
+            cameraAngle: cameraAngle,
+            cameraDistance: cameraDistance,
+            cameraFov: cameraFov
         }));
+        rotation.current.x = cameraAngle * (Math.PI / 180);
         if (tilting) {
-            rotation.current = { ...tilting };
+            rotation.current.y = tilting.y;
         }
 
     }, [
         stars, radius, arms, coreSize, spinCurvature, randomness,
         innerColor, outerColor, starSize, rotationSpeed, tilting?.x, tilting?.y,
-        enableOptions, enableStarsBg, movingStarsBg, enableImageBg
+        enableOptions, enableStarsBg, movingStarsBg, enableImageBg,
+        cameraAngle, cameraDistance, cameraFov, bgImageOpacity
     ]);
 
     // Mouse interaction
@@ -175,7 +190,7 @@ const Galaxy = ({
         sceneRef.current = scene;
 
         // Increased far plane to 10000 to see background stars
-        const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 10000);
+        const camera = new THREE.PerspectiveCamera(parametersRef.current.cameraFov, width / height, 0.1, 10000);
         camera.position.set(0, 4, 6);
         camera.lookAt(0, 0, 0);
         cameraRef.current = camera;
@@ -200,6 +215,12 @@ const Galaxy = ({
             const currentParams = parametersRef.current;
             const speed = currentParams.rotationSpeed;
 
+            // Update camera FOV dynamically
+            if (cameraRef.current.fov !== currentParams.cameraFov) {
+                cameraRef.current.fov = currentParams.cameraFov;
+                cameraRef.current.updateProjectionMatrix();
+            }
+
             // Rotate Main Galaxy
             if (pointsRef.current) {
                 pointsRef.current.rotation.y += speed * 0.01;
@@ -220,7 +241,7 @@ const Galaxy = ({
                 }
             }
 
-            const r = 8;
+            const r = currentParams.cameraDistance;
             const theta = rotation.current.x;
             const phi = rotation.current.y;
 
@@ -452,6 +473,7 @@ const Galaxy = ({
 
             const bgPoints = new THREE.Points(bgGeometry, bgMaterial);
             bgPoints.renderOrder = -1; // Ensure procedural stars are behind galaxy
+            bgPoints.rotation.y = starAngle * (Math.PI / 180);
             sceneRef.current.add(bgPoints);
             bgStarsRef.current = bgPoints;
         }
@@ -466,7 +488,7 @@ const Galaxy = ({
                 map: bgSphereTexture,
                 side: THREE.BackSide,
                 transparent: true,
-                opacity: 0.6, // Increased from 0.6 to 1 to fix dullness
+                opacity: parameters.bgImageOpacity, // Increased from 0.6 to 1 to fix dullness
                 depthWrite: false,
                 fog: false
             });

@@ -23,6 +23,12 @@ const Mars = ({
     tailOpacity = 0.8,  // Configurable tail visibility
     starCount = 8000,
     autoRotate = true,
+    bgEnabled = true,
+    starAngle = 0,
+    cameraAngle = 0,
+    cameraDistance = 2.8,
+    cameraFov = 45,
+    bgImageOpacity = 0.4,
     textureBaseUrl = 'https://cdn.jsdelivr.net/gh/Aditya-567/3D-Planets@main/public'
 }) => {
     const mountRef = useRef(null);
@@ -44,8 +50,10 @@ const Mars = ({
         scene.fog = new THREE.FogExp2(0x000000, 0.0003); // Reduced fog for clearer stars
 
         // Camera
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 8000);
-        camera.position.z = 2.8;
+        const camera = new THREE.PerspectiveCamera(cameraFov, window.innerWidth / window.innerHeight, 0.1, 8000);
+        const _camAngleRad = cameraAngle * (Math.PI / 180);
+        camera.position.set(0, cameraDistance * Math.sin(_camAngleRad), cameraDistance * Math.cos(_camAngleRad));
+        camera.lookAt(0, 0, 0);
 
         // Renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -69,12 +77,12 @@ const Mars = ({
             map: bgTexture,
             side: THREE.BackSide,
             transparent: true,
-            opacity: 0.4,
+            opacity: bgImageOpacity,
             depthWrite: false,
             fog: false
         });
         const backgroundSphere = new THREE.Mesh(bgGeometry, bgMaterial);
-        scene.add(backgroundSphere);
+        if (bgEnabled) scene.add(backgroundSphere);
 
         // --- 2. GALAXY SPHERE (Nebula particles - Red/Rust/Orange tones for Mars) ---
         const galaxyCount = 20000;
@@ -163,6 +171,7 @@ const Mars = ({
         starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
         starGeometry.setAttribute('color', new THREE.Float32BufferAttribute(starColors, 3));
         const stars = new THREE.Points(starGeometry, starMaterial);
+        stars.rotation.y = starAngle * (Math.PI / 180);
         scene.add(stars);
 
         // --- Mars Group ---

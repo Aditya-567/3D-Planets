@@ -23,7 +23,12 @@ const EarthMoonSatellite = ({
     satelliteOrbitVariation = 0.12,
     starCount = 8000,
     earthRotationSpeed = 0.01,
-    autoRotate = true
+    autoRotate = true,
+    bgEnabled = true,
+    starAngle = 0,
+    cameraAngle = 0,
+    cameraDistance = 2.8,
+    cameraFov = 45
 }) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
@@ -55,8 +60,10 @@ const EarthMoonSatellite = ({
         scene.fog = new THREE.FogExp2(0x000000, 0.02);
 
         // Camera
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 2.8;
+        const camera = new THREE.PerspectiveCamera(cameraFov, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const _camAngleRad = cameraAngle * (Math.PI / 180);
+        camera.position.set(0, cameraDistance * Math.sin(_camAngleRad), cameraDistance * Math.cos(_camAngleRad));
+        camera.lookAt(0, 0, 0);
 
         // Renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -119,6 +126,7 @@ const EarthMoonSatellite = ({
         starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
         starGeometry.setAttribute('color', new THREE.Float32BufferAttribute(starColors, 3));
         const stars = new THREE.Points(starGeometry, starMaterial);
+        stars.rotation.y = starAngle * (Math.PI / 180);
         scene.add(stars);
 
         // --- Earth Group ---
@@ -563,7 +571,7 @@ const EarthMoonSatellite = ({
                 </div>
             )}
 
-          
+
             {/* Bottom Control Panel - Expanded */}
             <div className="absolute bottom-8 left-0 w-full px-8 z-10 pointer-events-none">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-end items-end gap-6">
