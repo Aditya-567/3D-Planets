@@ -42,7 +42,8 @@ const GlobeScene = ({
     right,
     className = "",
     style = {},
-    containerHeight = '100vh'
+    containerHeight = '100vh',
+    mouseInteractive = true
 }) => {
     const mountRef = useRef(null);
     const showBeamsRef = useRef(showBeams);
@@ -492,6 +493,7 @@ const GlobeScene = ({
         const domEl = renderer.domElement;
 
         const onMouseDown = (e) => {
+            if (!mouseInteractive) return;
             isDragging = true;
             previousMousePosition = { x: e.clientX, y: e.clientY };
         };
@@ -594,7 +596,7 @@ const GlobeScene = ({
         style
     ]);
 
-    return <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />;
+    return <div ref={mountRef} className={`w-full h-full ${mouseInteractive ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'}`} />;
 };
 
 const DotGlobeWithDataLink = (props) => {

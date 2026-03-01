@@ -26,7 +26,8 @@ const EarthWithTower = ({
     cameraAngle = 0,
     cameraDistance = 2.8,
     cameraFov = 45,
-    containerHeight = '100vh'
+    containerHeight = '100vh',
+    mouseInteractive = true
 }) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
@@ -364,6 +365,7 @@ const EarthWithTower = ({
         let isMouseDown = false;
 
         const onDocumentMouseDown = (event) => {
+            if (!mouseInteractive) return;
             if (event.target.tagName !== 'CANVAS') return;
             event.preventDefault();
             isMouseDown = true;
@@ -394,6 +396,7 @@ const EarthWithTower = ({
         };
 
         const onTouchStart = (event) => {
+            if (!mouseInteractive) return;
             if (event.touches.length === 1) {
                 event.preventDefault();
                 isMouseDown = true;
@@ -518,7 +521,7 @@ const EarthWithTower = ({
         >
 
             {/* 3D Canvas Container */}
-            <div ref={mountRef} className="absolute inset-0 z-0 cursor-move" />
+            <div ref={mountRef} className={`absolute inset-0 z-0 ${mouseInteractive ? 'cursor-move' : 'cursor-default'}`} />
 
             {/* Background Ambience */}
             <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-900/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen"></div>

@@ -71,6 +71,9 @@ This document provides a comprehensive list of all customizable attributes for e
 #### Animation
 - `autoRotateSpeed` (number, default: 0.0015) - Auto rotation speed
 
+#### Interaction
+- `mouseInteractive` (boolean, default: true) - Enable or disable mouse/touch drag to rotate the model
+
 #### CSS Positioning
 - `top` (string) - CSS top positioning
 - `bottom` (string) - CSS bottom positioning
@@ -101,6 +104,9 @@ This document provides a comprehensive list of all customizable attributes for e
 #### Environment
 - `starCount` (number, default: 8000) - Background star count
 - `autoRotate` (boolean, default: true) - Enable auto-rotation
+
+#### Interaction
+- `mouseInteractive` (boolean, default: true) - Enable or disable mouse/touch drag to rotate the model
 
 #### CSS Positioning
 - `top` (string) - CSS top positioning
@@ -138,6 +144,9 @@ This document provides a comprehensive list of all customizable attributes for e
 #### Environment
 - `starCount` (number, default: 3000) - Background star count
 
+#### Interaction
+- `mouseInteractive` (boolean, default: true) - Enable or disable mouse/touch drag to rotate the model
+
 #### CSS Positioning
 - `top` (string) - CSS top positioning
 - `bottom` (string) - CSS bottom positioning
@@ -174,6 +183,9 @@ This document provides a comprehensive list of all customizable attributes for e
 #### Environment
 - `starCount` (number, default: 8000) - Background star count
 
+#### Interaction
+- `mouseInteractive` (boolean, default: true) - Enable or disable mouse/touch drag to rotate the model
+
 #### CSS Positioning
 - `top` (string) - CSS top positioning
 - `bottom` (string) - CSS bottom positioning
@@ -205,6 +217,9 @@ This document provides a comprehensive list of all customizable attributes for e
 #### Environment
 - `starCount` (number, default: 3000) - Background star count
 
+#### Interaction
+- `mouseInteractive` (boolean, default: true) - Enable or disable mouse/touch drag to rotate the model
+
 #### CSS Positioning
 - `top` (string) - CSS top positioning
 - `bottom` (string) - CSS bottom positioning
@@ -234,6 +249,9 @@ This document provides a comprehensive list of all customizable attributes for e
 #### Environment
 - `starCount` (number, default: 8000) - Background star count
 - `autoRotate` (boolean, default: true) - Enable auto-rotation
+
+#### Interaction
+- `mouseInteractive` (boolean, default: true) - Enable or disable mouse/touch drag to rotate the model
 
 #### CSS Positioning
 - `top` (string) - CSS top positioning
@@ -273,6 +291,9 @@ This document provides a comprehensive list of all customizable attributes for e
 - `starCount` (number, default: 8000) - Background star count
 - `autoRotate` (boolean, default: true) - Enable auto-rotation
 
+#### Interaction
+- `mouseInteractive` (boolean, default: true) - Enable or disable mouse/touch drag to rotate the model
+
 #### CSS Positioning
 - `top` (string) - CSS top positioning
 - `bottom` (string) - CSS bottom positioning
@@ -296,6 +317,9 @@ This document provides a comprehensive list of all customizable attributes for e
 #### Environment
 - `starCount` (number, default: 8000) - Background star count
 - `autoRotate` (boolean, default: true) - Enable auto-rotation
+
+#### Interaction
+- `mouseInteractive` (boolean, default: true) - Enable or disable mouse/touch drag to rotate the model
 
 #### CSS Positioning
 - `top` (string) - CSS top positioning
@@ -321,6 +345,9 @@ This document provides a comprehensive list of all customizable attributes for e
 #### Environment
 - `starCount` (number, default: 8000) - Background star count
 - `autoRotate` (boolean, default: true) - Enable auto-rotation
+
+#### Interaction
+- `mouseInteractive` (boolean, default: true) - Enable or disable mouse/touch drag to rotate the model
 
 #### CSS Positioning
 - `top` (string) - CSS top positioning
@@ -355,6 +382,9 @@ This document provides a comprehensive list of all customizable attributes for e
 - `starCount` (number, default: 8000) - Background star count
 - `autoRotate` (boolean, default: true) - Enable auto-rotation
 
+#### Interaction
+- `mouseInteractive` (boolean, default: true) - Enable or disable mouse/touch drag to rotate the model
+
 #### CSS Positioning
 - `top` (string) - CSS top positioning
 - `bottom` (string) - CSS bottom positioning
@@ -385,6 +415,9 @@ This document provides a comprehensive list of all customizable attributes for e
 #### Environment
 - `starCount` (number, default: 8000) - Background star count
 - `autoRotate` (boolean, default: true) - Enable auto-rotation
+
+#### Interaction
+- `mouseInteractive` (boolean, default: true) - Enable or disable mouse/touch drag to rotate the model
 
 #### CSS Positioning
 - `top` (string) - CSS top positioning
@@ -417,6 +450,9 @@ This document provides a comprehensive list of all customizable attributes for e
 - `starCount` (number, default: 8000) - Background star count
 - `autoRotate` (boolean, default: true) - Enable auto-rotation
 
+#### Interaction
+- `mouseInteractive` (boolean, default: true) - Enable or disable mouse/touch drag to rotate the model
+
 #### CSS Positioning
 - `top` (string) - CSS top positioning
 - `bottom` (string) - CSS bottom positioning
@@ -440,6 +476,9 @@ This document provides a comprehensive list of all customizable attributes for e
 #### Environment
 - `starCount` (number, default: 8000) - Background star count
 - `autoRotate` (boolean, default: true) - Enable auto-rotation
+
+#### Interaction
+- `mouseInteractive` (boolean, default: true) - Enable or disable mouse/touch drag to rotate the model
 
 #### CSS Positioning
 - `top` (string) - CSS top positioning
@@ -473,6 +512,9 @@ This document provides a comprehensive list of all customizable attributes for e
 - `asteroidCount` (number, default: 1900) - Asteroid belt count
 - `kuiperCount` (number, default: 9000) - Kuiper belt count
 - `autoRotate` (boolean, default: true) - Enable auto-rotation
+
+#### Interaction
+- `mouseInteractive` (boolean, default: true) - Enable or disable mouse/touch drag to rotate the model
 
 #### CSS Positioning
 - `top` (string) - CSS top positioning
@@ -512,6 +554,9 @@ This component includes all the features from `SolarSystem` plus:
 - Asteroid belt
 - Kuiper belt objects
 
+#### Interaction
+- `mouseInteractive` (boolean, default: true) - Enable or disable mouse/touch drag to rotate the solar system
+
 ---
 
 ## 17. Galaxy
@@ -544,6 +589,9 @@ This component includes all the features from `SolarSystem` plus:
 - `enableStarsBg` (boolean, default: true) - Show background stars (points)
 - `movingStarsBg` (boolean, default: true) - Animate background stars
 - `enableImageBg` (boolean, default: true) - Use image background
+
+#### Interaction
+- `mouseInteractive` (boolean, default: true) - Enable or disable mouse/touch drag to rotate the galaxy
 
 #### CSS Positioning
 - `top` (string) - CSS top positioning
@@ -583,6 +631,15 @@ Uses 6 logo variants that rotate automatically:
 - `bottom` (string) - CSS bottom positioning
 - `left` (string) - CSS left positioning
 - `right` (string) - CSS right positioning
+
+---
+
+## Common Interaction Attribute
+
+Most 3D model components support mouse/touch interaction control:
+- `mouseInteractive` (boolean, default: `true`) - Enable or disable mouse/touch drag to rotate the model. Set to `false` to make the model display-only.
+
+**Supports `mouseInteractive`:** DotGlobeWithDataLink, EarthAndMoon, EarthAndSatellite, EarthMoonSatellite, EarthWithTower, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto, SolarSystem, SolarSystemWithFeatures, Galaxy
 
 ---
 
@@ -648,4 +705,4 @@ import { DotGlobe } from '3d-solar-system-globe';
 
 ---
 
-*Generated on February 16, 2026*
+*Generated on March 1, 2026*

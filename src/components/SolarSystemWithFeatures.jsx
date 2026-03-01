@@ -22,7 +22,7 @@ const CELESTIAL_DATA = [
     { name: "Eris", type: "Dwarf Planet", description: "Massive dwarf planet in the scattered disc. It is one of the largest known dwarf planets in our solar system.", textureImg: "plutomap.jpg", size: 0.62, distance: 110, speed: 0.0008, orbitColor: 0xaaaaaa, inclination: 44.0, node: 135, ecc: 0.44, moonCount: 1, temp: "-243°C", radius: "1.1k km" }
 ];
 
-const GlobeApp = ({ containerHeight = '100vh' } = {}) => {
+const GlobeApp = ({ containerHeight = '100vh', mouseInteractive = true } = {}) => {
     const mountRef = useRef(null);
     const [loading, setLoading] = useState(true);
 
@@ -421,6 +421,7 @@ const GlobeApp = ({ containerHeight = '100vh' } = {}) => {
         let mouseDownPos = new THREE.Vector2();
 
         const onDocumentMouseDown = (event) => {
+            if (!mouseInteractive) return;
             if (event.target.tagName !== 'CANVAS') return;
             isMouseDown = true; setIsDragging(true);
             mouseXOnMouseDown = event.clientX; mouseYOnMouseDown = event.clientY;
@@ -639,7 +640,7 @@ const GlobeApp = ({ containerHeight = '100vh' } = {}) => {
 
     return (
         <div className="relative w-full bg-black text-white overflow-hidden font-sans selection:bg-orange-500/30" style={{ height: containerHeight }}>
-            <div ref={mountRef} className="absolute inset-0 z-0 cursor-move" />
+            <div ref={mountRef} className={`absolute inset-0 z-0 ${mouseInteractive ? 'cursor-move' : 'cursor-default'}`} />
             <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-orange-900/5 blur-[150px] rounded-full pointer-events-none mix-blend-screen"></div>
 
             {loading && (

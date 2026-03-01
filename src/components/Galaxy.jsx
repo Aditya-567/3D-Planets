@@ -92,7 +92,8 @@ const Galaxy = ({
     className = "",
     style = {},
     textureBaseUrl = 'https://cdn.jsdelivr.net/gh/Aditya-567/3D-Planets@main/public',
-    containerHeight = '100vh'
+    containerHeight = '100vh',
+    mouseInteractive = true
 }) => {
     const mountRef = useRef(null);
     const [isThreeLoaded] = useState(true);
@@ -601,14 +602,14 @@ const Galaxy = ({
 
             <div
                 ref={mountRef}
-                className="w-full h-full cursor-move"
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleMouseUp}
+                className={`w-full h-full ${mouseInteractive ? 'cursor-move' : 'cursor-default'}`}
+                onMouseDown={mouseInteractive ? handleMouseDown : undefined}
+                onMouseMove={mouseInteractive ? handleMouseMove : undefined}
+                onMouseUp={mouseInteractive ? handleMouseUp : undefined}
+                onMouseLeave={mouseInteractive ? handleMouseUp : undefined}
+                onTouchStart={mouseInteractive ? handleTouchStart : undefined}
+                onTouchMove={mouseInteractive ? handleTouchMove : undefined}
+                onTouchEnd={mouseInteractive ? handleMouseUp : undefined}
             />
 
             {!isThreeLoaded && (
