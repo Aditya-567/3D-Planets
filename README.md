@@ -2,7 +2,7 @@
 
 <div align="center">
 
-**[🚀 Live Preview & Playground](https://3dsolarsystem.space/) &nbsp;|&nbsp; [🎨 UI Examples](https://3dsolarsystem.space/#ui-examples) &nbsp;|&nbsp; [📖 Documentation](https://3dsolarsystem.space/#guide) &nbsp;|&nbsp; [📦 NPM](https://www.npmjs.com/package/3d-solar-system-globe) &nbsp;|&nbsp; [⭐ GitHub](https://github.com/Aditya-567/3D-Cosmos-ui)**
+**[🚀 Live Preview & Playground](https://3dsolarsystem.space/) &nbsp;|&nbsp; [🎨 UI Examples](https://3dsolarsystem.space/#ui-examples) &nbsp;|&nbsp; [📖 Documentation](https://3dsolarsystem.space/#guide) &nbsp;|&nbsp; [📦 NPM](https://www.npmjs.com/package/3d-solar-system-globe) &nbsp;|&nbsp; [⭐ GitHub](https://github.com/Aditya-567/3D-Planets)**
 
 [![NPM Version](https://img.shields.io/npm/v/3d-solar-system-globe?style=flat-square&color=CB3837&logo=npm)](https://www.npmjs.com/package/3d-solar-system-globe)
 [![GitHub Stars](https://img.shields.io/github/stars/Aditya-567/3D-Cosmos-ui?style=flat-square&color=yellow&logo=github)](https://github.com/Aditya-567/3D-Cosmos-ui)
