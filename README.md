@@ -1,5 +1,19 @@
 # 3d-solar-system-globe
 
+<div align="center">
+
+**[🚀 Live Preview & Playground](https://3dsolarsystem.space/) &nbsp;|&nbsp; [🎨 UI Examples](https://3dsolarsystem.space/#ui-examples) &nbsp;|&nbsp; [📖 Documentation](https://3dsolarsystem.space/#guide) &nbsp;|&nbsp; [📦 NPM](https://www.npmjs.com/package/3d-solar-system-globe) &nbsp;|&nbsp; [⭐ GitHub](https://github.com/Aditya-567/3D-Cosmos-ui)**
+
+[![NPM Version](https://img.shields.io/npm/v/3d-solar-system-globe?style=flat-square&color=CB3837&logo=npm)](https://www.npmjs.com/package/3d-solar-system-globe)
+[![GitHub Stars](https://img.shields.io/github/stars/Aditya-567/3D-Cosmos-ui?style=flat-square&color=yellow&logo=github)](https://github.com/Aditya-567/3D-Cosmos-ui)
+[![License](https://img.shields.io/github/license/Aditya-567/3D-Cosmos-ui?style=flat-square)](https://github.com/Aditya-567/3D-Cosmos-ui/blob/main/LICENSE)
+
+> Explore all components interactively, browse UI examples (Galaxy, Saturn, Earth landing pages), and follow the full installation guide at **[www.3dsolarsystem.space](https://3dsolarsystem.space/)**.
+
+</div>
+
+---
+
 <table>
   <tr>
     <td width="240">
@@ -33,6 +47,21 @@ Just Kidding 😝
 - ☀️ Full solar system scene  
 - ⚡ Built with React and Three.js  
 - 📦 Easy to plug into any React project  
+
+---
+
+## 🌐 Live Preview, Playground & Docs
+
+Visit **[3dsolarsystem.space](https://3dsolarsystem.space/)** for:
+
+| Section | Link | Description |
+|---|---|---|
+| 🚀 Playground | [3dsolarsystem.space](https://3dsolarsystem.space/) | Interact with every 3D component live in the browser — tweak parameters and see results instantly |
+| 🎨 UI Examples | [UI Examples](https://3dsolarsystem.space/#ui-examples) | Pre-built landing page examples: Galaxy, Saturn, and Earth |
+| 📖 Documentation | [Guide](https://3dsolarsystem.space/#guide) | Step-by-step install & usage guide with code snippets |
+| 🗂️ All Manifests | [Manifests](https://3dsolarsystem.space/#manifests) | Browse all available components: Data Mesh Globe, Earth Tower Link, Mars, Jupiter, Solar System, and more |
+| 📦 NPM Package | [3d-solar-system-globe](https://www.npmjs.com/package/3d-solar-system-globe) | Install via npm — view versions, weekly downloads, and bundle info |
+| ⭐ GitHub Repo | [Aditya-567/3D-Cosmos-ui](https://github.com/Aditya-567/3D-Cosmos-ui) | Source code, issues, contributions, and full project history |
 
 ---
 
